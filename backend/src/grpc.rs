@@ -1,0 +1,87 @@
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::transport::Server;
+use tonic::{Response, Status};
+
+use self::fence::fence_service_server::FenceService;
+
+use self::fence::CursorLocation;
+
+pub mod fence {
+    tonic::include_proto!("fence");
+}
+
+#[derive(Debug)]
+pub struct FenceManager {
+    tx: tokio::sync::broadcast::Sender<CursorLocation>,
+    rx: tokio::sync::broadcast::Receiver<CursorLocation>,
+}
+
+impl FenceManager {
+    pub fn new() -> Self {
+        let (tx, rx) = tokio::sync::broadcast::channel(16);
+        FenceManager { tx, rx }
+    }
+}
+
+#[tonic::async_trait]
+impl FenceService for FenceManager {
+    type GetCursorLocationStream = ReceiverStream<Result<CursorLocation, Status>>;
+
+    async fn get_cursor_location(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<Response<Self::GetCursorLocationStream>, Status> {
+        let mut rx_raw = self.rx.resubscribe();
+
+        let (tx, rx) = tokio::sync::mpsc::channel(16);
+
+        tokio::spawn(async move {
+            loop {
+                let msg = rx_raw.recv().await;
+
+                println!("Received message: {:?}", msg);
+
+                match msg {
+                    Ok(msg) => {
+                        if let Err(_) = tx.send(Ok(msg)).await {
+                            break;
+                        }
+                    }
+                    Err(e) => match e {
+                        tokio::sync::broadcast::error::RecvError::Closed => {
+                            println!("Channel closed");
+                            break;
+                        }
+                        tokio::sync::broadcast::error::RecvError::Lagged(_) => {
+                            println!("Channel lagged");
+                        }
+                    },
+                }
+            }
+        });
+
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
+}
+
+pub async fn init_connection() -> tokio::sync::broadcast::Sender<CursorLocation> {
+    let addr = "0.0.0.0:1234".parse().unwrap();
+
+    let manager = FenceManager::new();
+    let tx = manager.tx.clone();
+
+    let service = fence::fence_service_server::FenceServiceServer::new(manager);
+
+    tokio::spawn(async move {
+        let server_result = Server::builder().add_service(service).serve(addr).await;
+
+        match server_result {
+            Ok(_) => println!("Server exited gracefully"),
+            Err(e) => println!("Server exited with error: {:?}", e),
+        }
+    });
+
+    println!("Server listening on {}", addr);
+
+    tx
+}

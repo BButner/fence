@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package fence;
+
+service FenceService {
+	rpc GetCursorLocation (google.protobuf.Empty) returns (stream CursorLocation);
+}
+
+message CursorLocation {
+	int32 x = 1;
+	int32 y = 2;
+}

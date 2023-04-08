@@ -6,7 +6,6 @@ use once_cell::sync::Lazy;
 pub mod config;
 pub mod grpc;
 pub mod region;
-pub mod tests;
 
 static TX: Lazy<Arc<Mutex<Option<tokio::sync::broadcast::Sender<CursorLocation>>>>> =
     Lazy::new(|| Arc::new(Mutex::new(None)));

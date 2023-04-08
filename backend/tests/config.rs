@@ -1,10 +1,7 @@
 #[cfg(test)]
-mod tests {
+mod config_tests {
+    use backend::config::Config;
     use tempfile::tempdir;
-
-    use crate::config::Config;
-
-    use super::*;
 
     #[test]
     fn it_works() {

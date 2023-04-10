@@ -7,6 +7,7 @@ package fence;
 service FenceService {
 	rpc GetCursorLocation (google.protobuf.Empty) returns (stream CursorLocation);
 	rpc GetRegions (google.protobuf.Empty) returns (GetRegionsResponse);
+	rpc AddRegion (AddRegionRequest) returns (google.protobuf.Empty);
 }
 
 message CursorLocation {
@@ -16,6 +17,10 @@ message CursorLocation {
 
 message GetRegionsResponse {
 	repeated Region regions = 1;
+}
+
+message AddRegionRequest {
+	Region region = 1;
 }
 
 message Region {

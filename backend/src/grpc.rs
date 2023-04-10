@@ -86,6 +86,29 @@ impl FenceService for FenceManager {
 
         Ok(tonic::Response::new(fence::GetRegionsResponse { regions }))
     }
+
+    async fn add_region(
+        &self,
+        request: tonic::Request<fence::AddRegionRequest>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let mut state = STATE.lock().await;
+        let new_region = request.get_ref().region.as_ref().unwrap();
+
+        state
+            .current_config
+            .as_mut()
+            .unwrap()
+            .regions
+            .push(crate::region::Region {
+                x: new_region.x,
+                y: new_region.y,
+                width: new_region.width,
+                height: new_region.height,
+                id: new_region.id.to_string(),
+            });
+
+        Ok(Response::new(()))
+    }
 }
 
 pub async fn init_connection() -> tokio::sync::broadcast::Sender<CursorLocation> {

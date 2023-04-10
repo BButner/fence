@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::convert::From;
 
-pub mod fence {
-    tonic::include_proto!("fence");
-}
+use crate::grpc::fence;
 
 /// Region
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -20,9 +17,8 @@ pub struct Region {
     pub id: String,
 }
 
-/// Region from the gRPC Service
-impl From<Region> for fence::Region {
-    fn from(region: Region) -> Self {
+impl From<fence::Region> for crate::region::Region {
+    fn from(region: fence::Region) -> Self {
         Self {
             x: region.x,
             y: region.y,
@@ -33,14 +29,14 @@ impl From<Region> for fence::Region {
     }
 }
 
-// impl From<fence::Region> for Region {
-//     fn from(region: fence::Region) -> Self {
-//         Self {
-//             x: region.x,
-//             y: region.y,
-//             width: region.width,
-//             height: region.height,
-//             id: region.id,
-//         }
-//     }
-// }
+impl From<&crate::region::Region> for fence::Region {
+    fn from(region: &crate::region::Region) -> Self {
+        Self {
+            x: region.x,
+            y: region.y,
+            width: region.width,
+            height: region.height,
+            id: region.id.to_owned(),
+        }
+    }
+}

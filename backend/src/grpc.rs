@@ -71,20 +71,14 @@ impl FenceService for FenceManager {
     ) -> Result<tonic::Response<fence::GetRegionsResponse>, tonic::Status> {
         let state = STATE.lock().await;
         let current_config = state.current_config.as_ref().unwrap();
-        let mut regions = Vec::new();
 
-        // TODO: Make this better...
-        for region in &current_config.regions {
-            regions.push(fence::Region {
-                id: region.id.to_string(),
-                x: region.x,
-                y: region.y,
-                width: region.width,
-                height: region.height,
-            });
-        }
-
-        Ok(tonic::Response::new(fence::GetRegionsResponse { regions }))
+        Ok(tonic::Response::new(fence::GetRegionsResponse {
+            regions: current_config
+                .regions
+                .iter()
+                .map(|region| region.into())
+                .collect(),
+        }))
     }
 
     async fn add_region(

@@ -6,7 +6,7 @@ pub mod fence {
 }
 
 /// Region
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Region {
     /// The Top Position of the Region
     pub x: i32,

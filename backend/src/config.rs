@@ -78,10 +78,20 @@ impl Config {
     /// Save the Config, asynchronously
     async fn save_config(config: &Self) {
         let serialized = serde_json::to_string_pretty(&config).unwrap();
-        let mut file = tokio::fs::File::create(&config.loaded_path())
-            .await
-            .unwrap();
-        let _ = file.write_all(serialized.as_bytes()).await;
+        let file = tokio::fs::File::create(&config.loaded_path()).await;
+
+        match file {
+            Ok(mut file) => {
+                let _ = file.write_all(serialized.as_bytes()).await;
+            }
+            Err(_) => {
+                let _ = tokio::fs::create_dir_all(config.loaded_path().parent().unwrap()).await;
+                let mut file = tokio::fs::File::create(&config.loaded_path())
+                    .await
+                    .unwrap();
+                let _ = file.write_all(serialized.as_bytes()).await;
+            }
+        }
     }
 
     /// Gets the Path the Config was loaded from

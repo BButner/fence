@@ -111,6 +111,20 @@ impl FenceService for FenceManager {
             Err(Status::invalid_argument("Invalid region."))
         }
     }
+
+    async fn save_config(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let mut state = STATE.lock().await;
+
+        if let Some(current_config) = state.current_config.as_mut() {
+            current_config.save().await;
+            Ok(Response::new(()))
+        } else {
+            Err(Status::aborted("Failed to save config."))
+        }
+    }
 }
 
 pub async fn init_connection() -> tokio::sync::broadcast::Sender<CursorLocation> {

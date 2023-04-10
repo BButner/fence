@@ -1,4 +1,4 @@
-use backend::{init_grpc, update_cursor_location};
+use backend::update_cursor_location;
 use tokio::runtime::Runtime;
 
 static mut RUNTIME: Option<Runtime> = None;
@@ -13,7 +13,7 @@ pub extern "C" fn init_fence() -> bool {
         Ok(runtime) => unsafe {
             RUNTIME = Some(runtime);
 
-            let result = RUNTIME.as_ref().unwrap().block_on(init_grpc());
+            let result = RUNTIME.as_ref().unwrap().block_on(backend::init_fence());
 
             result
         },

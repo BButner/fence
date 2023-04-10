@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/swift,rust,nextjs,yarn
 # Edit at https://www.toptal.com/developers/gitignore?templates=swift,rust,nextjs,yarn
 
+*.dylib
+
 ### NextJS ###
 # dependencies
 /node_modules

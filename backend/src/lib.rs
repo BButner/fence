@@ -7,15 +7,31 @@ pub mod config;
 pub mod grpc;
 pub mod region;
 
+pub struct State {
+    current_config: Option<config::Config>,
+}
+
+impl State {
+    pub fn default() -> Self {
+        Self {
+            current_config: None,
+        }
+    }
+}
+
 static TX: Lazy<Arc<Mutex<Option<tokio::sync::broadcast::Sender<CursorLocation>>>>> =
     Lazy::new(|| Arc::new(Mutex::new(None)));
+
+static STATE: Lazy<Arc<tokio::sync::Mutex<State>>> =
+    Lazy::new(|| Arc::new(tokio::sync::Mutex::new(State::default())));
 
 pub async fn init_fence() -> bool {
     let config = config::Config::load(None).await;
 
     match config {
         Some(config) => {
-            println!("Loaded config: {:?}", config);
+            let mut state = STATE.lock().await;
+            state.current_config = Some(config);
         }
         None => {
             println!("Failed to load config");

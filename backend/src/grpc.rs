@@ -2,6 +2,8 @@ use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::Server;
 use tonic::{Response, Status};
 
+use crate::STATE;
+
 use self::fence::fence_service_server::FenceService;
 
 use self::fence::CursorLocation;
@@ -61,6 +63,28 @@ impl FenceService for FenceManager {
         });
 
         Ok(Response::new(ReceiverStream::new(rx)))
+    }
+
+    async fn get_regions(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<fence::GetRegionsResponse>, tonic::Status> {
+        let state = STATE.lock().await;
+        let current_config = state.current_config.as_ref().unwrap();
+        let mut regions = Vec::new();
+
+        // TODO: Make this better...
+        for region in &current_config.regions {
+            regions.push(fence::Region {
+                id: region.id.to_string(),
+                x: region.x,
+                y: region.y,
+                width: region.width,
+                height: region.height,
+            });
+        }
+
+        Ok(tonic::Response::new(fence::GetRegionsResponse { regions }))
     }
 }
 

@@ -92,22 +92,24 @@ impl FenceService for FenceManager {
         request: tonic::Request<fence::AddRegionRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
         let mut state = STATE.lock().await;
-        let new_region = request.get_ref().region.as_ref().unwrap();
 
-        state
-            .current_config
-            .as_mut()
-            .unwrap()
-            .regions
-            .push(crate::region::Region {
-                x: new_region.x,
-                y: new_region.y,
-                width: new_region.width,
-                height: new_region.height,
-                id: new_region.id.to_string(),
-            });
+        if let Some(new_region) = request.get_ref().region.as_ref() {
+            if let Some(current_config) = state.current_config.as_mut() {
+                current_config.regions.push(crate::region::Region {
+                    x: new_region.x,
+                    y: new_region.y,
+                    width: new_region.width,
+                    height: new_region.height,
+                    id: new_region.id.to_string(),
+                });
 
-        Ok(Response::new(()))
+                Ok(Response::new(()))
+            } else {
+                Err(Status::aborted("Could not unwrap config..."))
+            }
+        } else {
+            Err(Status::invalid_argument("Invalid region."))
+        }
     }
 }
 

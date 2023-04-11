@@ -72,7 +72,10 @@ impl Config {
         let loaded = serde_json::from_str::<Config>(&contents);
 
         match loaded {
-            Ok(config) => Some(config),
+            Ok(config) => {
+                unsafe { REGIONS = config.regions.clone() }
+                Some(config)
+            }
             Err(_) => None,
         }
     }

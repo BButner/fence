@@ -17,6 +17,15 @@ pub struct Region {
     pub id: String,
 }
 
+impl Region {
+    pub fn is_inside(self: &Self, x: i32, y: i32, offset: i32) -> bool {
+        x >= self.x - offset
+            && x <= self.x + self.width + offset
+            && y >= self.y - offset
+            && y <= self.y + self.height + offset
+    }
+}
+
 impl From<fence::Region> for crate::region::Region {
     fn from(region: fence::Region) -> Self {
         Self {

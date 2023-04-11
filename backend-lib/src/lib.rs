@@ -1,7 +1,19 @@
-use backend::update_cursor_location;
+use backend::try_update_cursor_location;
 use tokio::runtime::Runtime;
 
 static mut RUNTIME: Option<Runtime> = None;
+
+#[repr(C)]
+pub struct MouseLocation {
+    pub x: i32,
+    pub y: i32,
+}
+
+#[repr(C)]
+pub struct UpdateMouseLocationResult {
+    pub updated: bool,
+    pub location: MouseLocation,
+}
 
 #[no_mangle]
 pub extern "C" fn init_fence() -> bool {
@@ -25,6 +37,17 @@ pub extern "C" fn init_fence() -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn update_mouse_location(x: i32, y: i32) {
-    update_cursor_location(x, y);
+pub extern "C" fn try_update_mouse_location(x: i32, y: i32) -> UpdateMouseLocationResult {
+    let result = try_update_cursor_location(x, y);
+
+    println!("Original: x: {}, y: {}", x, y);
+    println!("Result: x: {}, y: {}", result.location.x, result.location.y);
+
+    UpdateMouseLocationResult {
+        updated: result.updated,
+        location: MouseLocation {
+            x: result.location.x,
+            y: result.location.y,
+        },
+    }
 }

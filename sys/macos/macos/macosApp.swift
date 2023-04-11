@@ -29,9 +29,7 @@ struct macosApp: App {
             let newX = location.x + deltaX;
             let flippedY = screen!.frame.size.height - location.y;
             let newY = flippedY + deltaY;
-            
-            print(newY)
-            
+                        
 //            try_update_mouse_location(Int32(location.x), Int32(newY));
             
             let result = try_update_mouse_location(Int32(newX), Int32(newY));

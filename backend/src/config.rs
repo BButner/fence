@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::{region::Region, REGIONS};
+use crate::region::Region;
 
 /// Persistent Configuration
 #[derive(Debug, Deserialize, Serialize)]
@@ -72,13 +72,7 @@ impl Config {
         let loaded = serde_json::from_str::<Config>(&contents);
 
         match loaded {
-            Ok(config) => {
-                let regions = REGIONS.lock();
-                let mut regions = regions.unwrap();
-                regions.clear();
-                regions.extend(config.regions.clone());
-                Some(config)
-            }
+            Ok(config) => Some(config),
             Err(_) => None,
         }
     }
@@ -87,11 +81,6 @@ impl Config {
     async fn save_config(config: &Self) {
         let serialized = serde_json::to_string_pretty(&config).unwrap();
         let file = tokio::fs::File::create(&config.loaded_path()).await;
-
-        let regions = REGIONS.lock();
-        let mut regions = regions.unwrap();
-        regions.clear();
-        regions.extend(config.regions.clone());
 
         match file {
             Ok(mut file) => {

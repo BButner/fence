@@ -1,7 +1,10 @@
-use backend::try_update_cursor_location;
-use tokio::runtime::Runtime;
+use std::sync::Arc;
+
+use backend::grpc::State;
+use tokio::{runtime::Runtime, sync::Mutex};
 
 static mut RUNTIME: Option<Runtime> = None;
+static mut STATE: Option<Arc<Mutex<State>>> = None;
 
 #[repr(C)]
 pub struct MouseLocation {
@@ -27,7 +30,13 @@ pub extern "C" fn init_fence() -> bool {
 
             let result = RUNTIME.as_ref().unwrap().block_on(backend::init_fence());
 
-            result
+            match result {
+                Some(state) => {
+                    STATE = Some(state);
+                    true
+                }
+                None => false,
+            }
         },
         Err(e) => {
             println!("Error creating runtime: {:?}", e);
@@ -38,16 +47,12 @@ pub extern "C" fn init_fence() -> bool {
 
 #[no_mangle]
 pub extern "C" fn try_update_mouse_location(x: i32, y: i32) -> UpdateMouseLocationResult {
-    let result = try_update_cursor_location(x, y);
+    let state = unsafe { STATE.as_ref().unwrap() };
 
-    println!("Original: x: {}, y: {}", x, y);
-    println!("Result: x: {}, y: {}", result.location.x, result.location.y);
+    state.blocking_lock().try_update_cursor_location(x, y);
 
     UpdateMouseLocationResult {
-        updated: result.updated,
-        location: MouseLocation {
-            x: result.location.x,
-            y: result.location.y,
-        },
+        updated: true,
+        location: MouseLocation { x, y },
     }
 }

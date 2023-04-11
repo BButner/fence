@@ -1,7 +1,4 @@
-use std::{
-    sync::{Arc, Mutex},
-    thread::current,
-};
+use std::sync::{Arc, Mutex};
 
 use grpc::fence::CursorLocation;
 use once_cell::sync::Lazy;
@@ -29,7 +26,9 @@ static TX: Lazy<Arc<Mutex<Option<tokio::sync::broadcast::Sender<CursorLocation>>
 static STATE: Lazy<Arc<tokio::sync::Mutex<State>>> =
     Lazy::new(|| Arc::new(tokio::sync::Mutex::new(State::default())));
 
-static mut REGIONS: Vec<Region> = Vec::new();
+static REGIONS: Arc<Mutex<Vec<Region>>> = Arc::new(Mutex::new(Vec::new()));
+
+static LAST_GOOD_POS: Arc<Mutex<Option<CursorLocation>>> = Arc::new(Mutex::new(None));
 
 pub async fn init_fence() -> bool {
     let config = config::Config::load(None).await;
@@ -53,8 +52,6 @@ pub async fn init_fence() -> bool {
     true
 }
 
-static mut LAST_GOOD_POS: Option<CursorLocation> = None;
-
 pub struct UpdateCursorLocationResult {
     pub updated: bool,
     pub location: CursorLocation,
@@ -62,82 +59,106 @@ pub struct UpdateCursorLocationResult {
 
 pub fn try_update_cursor_location(x: i32, y: i32) -> UpdateCursorLocationResult {
     let tx = TX.lock().unwrap();
+    let regions = unsafe { REGIONS.lock().as_ref().unwrap() };
+    let last_good_pos = unsafe { LAST_GOOD_POS.lock().as_mut().unwrap() };
 
-    let mut inside_region = false;
-
-    for region in unsafe { &REGIONS } {
-        if region.is_inside(x, y, 0) {
-            inside_region = true;
-            println!("Cursor is within region: {}", region.id);
-            break;
-        }
+    if last_good_pos.is_none() {
+        last_good_pos.replace(CursorLocation { x, y });
     }
 
-    if inside_region {
-        let current_region = unsafe { REGIONS.iter().find(|region| region.is_inside(x, y, 1)) };
+    if let Some(last_good_pos) = last_good_pos.as_mut() {
+        let mut inside_region = false;
 
-        if let Some(region) = current_region {
-            let mut new_x = x;
-            let mut new_y = y;
+        for region in regions.iter() {
+            if region.is_inside(x, y, 0) {
+                inside_region = true;
+                println!("Cursor is within region: {}", region.id);
+                break;
+            }
+        }
 
-            // check if new_x, and original y is valid
-            // check if new_y, and original x is valid
-            // If neither, then we need to move both
+        if inside_region {
+            let current_region = regions.iter().find(|region| region.is_inside(x, y, 1));
 
-            // Check if any regions are within the new x, and original y
-            let mut new_x_valid = true;
-            for region in unsafe { &REGIONS } {
-                if region.is_inside(new_x, y, 0) {
-                    new_x_valid = false;
-                    break;
+            if let Some(region) = current_region {
+                let mut new_x = x;
+                let mut new_y = y;
+
+                let mut new_x_valid = true;
+                for region in regions.iter() {
+                    if region.is_inside(new_x, y, 0) {
+                        new_x_valid = false;
+                        break;
+                    }
                 }
-            }
 
-            // Check if any regions are within the new y, and original x
-            let mut new_y_valid = true;
-            for region in unsafe { &REGIONS } {
-                if region.is_inside(x, new_y, 0) {
-                    new_y_valid = false;
-                    break;
+                let mut new_y_valid = true;
+                for region in regions.iter() {
+                    if region.is_inside(x, new_y, 0) {
+                        new_y_valid = false;
+                        break;
+                    }
                 }
-            }
 
-            if !new_x_valid && !new_y_valid {
-                // Move both
-                new_x = unsafe { LAST_GOOD_POS.as_ref().unwrap().x };
-                new_y = unsafe { LAST_GOOD_POS.as_ref().unwrap().y };
-            } else if !new_x_valid {
-                // Move x
-                new_x = unsafe { LAST_GOOD_POS.as_ref().unwrap().x };
-            } else if !new_y_valid {
-                // Move y
-                new_y = unsafe { LAST_GOOD_POS.as_ref().unwrap().y };
-            }
+                if !new_x_valid && !new_y_valid {
+                    new_x = last_good_pos.x;
+                    new_y = last_good_pos.y;
+                } else if !new_x_valid {
+                    new_x = last_good_pos.x;
+                } else if !new_y_valid {
+                    new_y = last_good_pos.y;
+                }
 
-            UpdateCursorLocationResult {
-                updated: false,
-                location: CursorLocation { x: new_x, y: new_y },
-            }
-        } else {
-            println!("Failed to find region for cursor location");
-            unsafe {
+                if let Some(tx) = tx.as_ref() {
+                    let _ = tx.send(CursorLocation { x: new_x, y: new_y });
+                }
+
                 UpdateCursorLocationResult {
                     updated: false,
-                    location: CursorLocation {
-                        x: LAST_GOOD_POS.as_ref().unwrap().x,
-                        y: LAST_GOOD_POS.as_ref().unwrap().y,
-                    },
+                    location: CursorLocation { x: new_x, y: new_y },
+                }
+            } else {
+                println!("Failed to find region for cursor location");
+
+                if let Some(tx) = tx.as_ref() {
+                    let _ = tx.send(CursorLocation { x: x, y: y });
+                }
+
+                unsafe {
+                    UpdateCursorLocationResult {
+                        updated: false,
+                        location: CursorLocation {
+                            x: last_good_pos.x,
+                            y: last_good_pos.y,
+                        },
+                    }
+                }
+            }
+        } else {
+            unsafe {
+                last_good_pos.x = x;
+                last_good_pos.y = y;
+
+                if let Some(tx) = tx.as_ref() {
+                    let _ = tx.send(CursorLocation { x: x, y: y });
+                }
+
+                UpdateCursorLocationResult {
+                    updated: true,
+                    location: CursorLocation { x, y },
                 }
             }
         }
     } else {
-        unsafe {
-            LAST_GOOD_POS = Some(CursorLocation { x, y });
+        println!("Failed to get last good position");
 
-            UpdateCursorLocationResult {
-                updated: true,
-                location: CursorLocation { x, y },
-            }
+        if let Some(tx) = tx.as_ref() {
+            let _ = tx.send(CursorLocation { x: x, y: y });
+        }
+
+        UpdateCursorLocationResult {
+            updated: false,
+            location: CursorLocation { x, y },
         }
     }
 }

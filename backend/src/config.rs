@@ -73,7 +73,10 @@ impl Config {
 
         match loaded {
             Ok(config) => {
-                unsafe { REGIONS = config.regions.clone() }
+                let regions = REGIONS.lock();
+                let mut regions = regions.unwrap();
+                regions.clear();
+                regions.extend(config.regions.clone());
                 Some(config)
             }
             Err(_) => None,
@@ -85,9 +88,10 @@ impl Config {
         let serialized = serde_json::to_string_pretty(&config).unwrap();
         let file = tokio::fs::File::create(&config.loaded_path()).await;
 
-        unsafe {
-            REGIONS = config.regions.clone();
-        }
+        let regions = REGIONS.lock();
+        let mut regions = regions.unwrap();
+        regions.clear();
+        regions.extend(config.regions.clone());
 
         match file {
             Ok(mut file) => {

@@ -41,6 +41,7 @@ impl State {
     }
 
     pub fn try_update_cursor_location(&mut self, x: i32, y: i32) -> UpdateCursorLocationResult {
+        let time_before = std::time::Instant::now();
         let response = if self.is_active {
             cursor::try_update_cursor_location(x, y, self)
         } else {
@@ -49,6 +50,14 @@ impl State {
                 updated: true,
             }
         };
+        let time_after_cursor_check = std::time::Instant::now();
+
+        println!(
+            "Cursor check took: {}ms",
+            time_after_cursor_check
+                .duration_since(time_before)
+                .as_millis()
+        );
 
         let _ = self.tx.send(CursorLocation {
             x: response.location.x,

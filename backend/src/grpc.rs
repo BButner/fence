@@ -22,22 +22,33 @@ pub struct State {
     pub(crate) current_regions: Vec<crate::region::Region>,
     pub(crate) last_good_pos: Option<CursorLocation>,
     pub(crate) tx: tokio::sync::broadcast::Sender<CursorLocation>,
+    pub(crate) is_active: bool,
 }
 
 impl State {
     pub fn new(current_config: Config, tx: tokio::sync::broadcast::Sender<CursorLocation>) -> Self {
         let current_regions = current_config.regions.clone();
 
+        let is_active = current_config.auto_lock;
+
         Self {
             current_config,
             current_regions,
             last_good_pos: None,
             tx,
+            is_active,
         }
     }
 
     pub fn try_update_cursor_location(&mut self, x: i32, y: i32) -> UpdateCursorLocationResult {
-        let response = cursor::try_update_cursor_location(x, y, self);
+        let response = if self.is_active {
+            cursor::try_update_cursor_location(x, y, self)
+        } else {
+            UpdateCursorLocationResult {
+                location: CursorLocation { x, y },
+                updated: true,
+            }
+        };
 
         let _ = self.tx.send(CursorLocation {
             x: response.location.x,
@@ -167,6 +178,28 @@ impl FenceService for FenceManager {
         state.current_config.save().await;
 
         state.current_regions = state.current_config.regions.clone();
+
+        Ok(Response::new(()))
+    }
+
+    async fn activate_lock(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let mut state = self.state.lock().await;
+
+        state.is_active = true;
+
+        Ok(Response::new(()))
+    }
+
+    async fn deactivate_lock(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let mut state = self.state.lock().await;
+
+        state.is_active = false;
 
         Ok(Response::new(()))
     }

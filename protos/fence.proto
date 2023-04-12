@@ -10,6 +10,9 @@ service FenceService {
   rpc AddRegion(AddRegionRequest) returns (google.protobuf.Empty);
   rpc SaveConfig(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc DeleteRegionById(DeleteRegionByIdRequest) returns (google.protobuf.Empty);
+
+  rpc ActivateLock(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc DeactivateLock(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 message CursorLocation {

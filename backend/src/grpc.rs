@@ -10,7 +10,7 @@ use crate::cursor::{self, UpdateCursorLocationResult};
 
 use self::fence::fence_service_server::FenceService;
 
-use self::fence::{CursorLocation, Region};
+use self::fence::CursorLocation;
 
 pub mod fence {
     tonic::include_proto!("fence");

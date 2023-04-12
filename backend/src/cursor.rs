@@ -62,6 +62,9 @@ pub(crate) fn try_update_cursor_location(
 
                 let _ = state.tx.send(CursorLocation { x: new_x, y: new_y });
 
+                last_good_pos.x = new_x;
+                last_good_pos.y = new_y;
+
                 UpdateCursorLocationResult {
                     updated: false,
                     location: CursorLocation { x: new_x, y: new_y },
@@ -78,6 +81,9 @@ pub(crate) fn try_update_cursor_location(
             }
         } else {
             let _ = state.tx.send(CursorLocation { x, y });
+
+            last_good_pos.x = x;
+            last_good_pos.y = y;
 
             UpdateCursorLocationResult {
                 updated: true,

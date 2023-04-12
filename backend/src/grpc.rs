@@ -6,6 +6,7 @@ use tonic::transport::Server;
 use tonic::{Response, Status};
 
 use crate::config::Config;
+use crate::cursor::{self, UpdateCursorLocationResult};
 
 use self::fence::fence_service_server::FenceService;
 
@@ -15,17 +16,12 @@ pub mod fence {
     tonic::include_proto!("fence");
 }
 
-pub struct UpdateCursorLocationResult {
-    pub updated: bool,
-    pub location: CursorLocation,
-}
-
 #[derive(Debug)]
 pub struct State {
-    current_config: Config,
-    current_regions: Vec<Region>,
-    last_good_pos: Option<CursorLocation>,
-    tx: tokio::sync::broadcast::Sender<CursorLocation>,
+    pub(crate) current_config: Config,
+    pub(crate) current_regions: Vec<crate::region::Region>,
+    pub(crate) last_good_pos: Option<CursorLocation>,
+    pub(crate) tx: tokio::sync::broadcast::Sender<CursorLocation>,
 }
 
 impl State {
@@ -38,13 +34,15 @@ impl State {
         }
     }
 
-    pub fn try_update_cursor_location(&self, x: i32, y: i32) -> UpdateCursorLocationResult {
-        let _ = self.tx.send(CursorLocation { x, y });
+    pub fn try_update_cursor_location(&mut self, x: i32, y: i32) -> UpdateCursorLocationResult {
+        let response = cursor::try_update_cursor_location(x, y, self);
 
-        UpdateCursorLocationResult {
-            updated: true,
-            location: CursorLocation { x, y },
-        }
+        let _ = self.tx.send(CursorLocation {
+            x: response.location.x,
+            y: response.location.y,
+        });
+
+        response
     }
 }
 

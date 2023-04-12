@@ -34,6 +34,8 @@ struct macosApp: App {
             
             let result = try_update_mouse_location(Int32(newX), Int32(newY));
             
+            print(result)
+            
             if (!result.updated) {
                 print(result)
                 print("should be setting it back to a valid point");
@@ -63,10 +65,9 @@ struct macosApp: App {
             Button("Init Server") {
                 let result = init_fence();
                 
-//                print(result);
+                print(result);
                 
-//                currentNumber = result ? "1" : "0";
-                currentNumber = "7";
+                currentNumber = result ? "1" : "0";
                 
                 NSEvent.addGlobalMonitorForEvents(matching: NSEvent.EventTypeMask.mouseMoved, handler: test_handler);
             }

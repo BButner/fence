@@ -5,29 +5,28 @@ import "google/protobuf/empty.proto";
 package fence;
 
 service FenceService {
-	rpc GetCursorLocation (google.protobuf.Empty) returns (stream CursorLocation);
-	rpc GetRegions (google.protobuf.Empty) returns (GetRegionsResponse);
-	rpc AddRegion (AddRegionRequest) returns (google.protobuf.Empty);
-	rpc SaveConfig (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc GetCursorLocation(google.protobuf.Empty) returns (stream CursorLocation);
+  rpc GetRegions(google.protobuf.Empty) returns (GetRegionsResponse);
+  rpc AddRegion(AddRegionRequest) returns (google.protobuf.Empty);
+  rpc SaveConfig(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc DeleteRegionById(DeleteRegionByIdRequest) returns (google.protobuf.Empty);
 }
 
 message CursorLocation {
-	int32 x = 1;
-	int32 y = 2;
+  int32 x = 1;
+  int32 y = 2;
 }
 
-message GetRegionsResponse {
-	repeated Region regions = 1;
-}
+message GetRegionsResponse { repeated Region regions = 1; }
 
-message AddRegionRequest {
-	Region region = 1;
-}
+message AddRegionRequest { Region region = 1; }
+
+message DeleteRegionByIdRequest { string id = 1; }
 
 message Region {
-	int32 x = 1;
-	int32 y = 2;
-	int32 width = 3;
-	int32 height = 4;
-	string id = 6;
+  int32 x = 1;
+  int32 y = 2;
+  int32 width = 3;
+  int32 height = 4;
+  string id = 6;
 }

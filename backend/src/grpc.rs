@@ -144,6 +144,20 @@ impl FenceService for FenceManager {
         }
     }
 
+    async fn delete_region_by_id(
+        &self,
+        request: tonic::Request<fence::DeleteRegionByIdRequest>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let mut state = self.state.lock().await;
+
+        state
+            .current_config
+            .regions
+            .retain(|region| region.id != request.get_ref().id);
+
+        Ok(Response::new(()))
+    }
+
     async fn save_config(
         &self,
         _request: tonic::Request<()>,

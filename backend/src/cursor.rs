@@ -18,7 +18,7 @@ pub(crate) fn try_update_cursor_location(
         let mut inside_region = false;
 
         for region in state.current_regions.iter() {
-            if region.is_inside(x, y, 1) {
+            if region.is_inside(x, y, 0) {
                 inside_region = true;
                 println!("Cursor is within region: {}", region.id);
                 break;

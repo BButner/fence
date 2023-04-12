@@ -29,7 +29,7 @@ pub(crate) fn try_update_cursor_location(
             let current_region = state
                 .current_regions
                 .iter()
-                .find(|region| region.is_inside(x, y, 1));
+                .find(|region| region.is_inside(x, y, 0));
 
             if let Some(_) = current_region {
                 let mut new_x = x;
@@ -74,6 +74,9 @@ pub(crate) fn try_update_cursor_location(
 
                 let _ = state.tx.send(CursorLocation { x, y });
 
+                last_good_pos.x = x;
+                last_good_pos.y = y;
+
                 UpdateCursorLocationResult {
                     updated: true,
                     location: CursorLocation { x, y },
@@ -94,6 +97,8 @@ pub(crate) fn try_update_cursor_location(
         println!("Failed to find last good position");
 
         let _ = state.tx.send(CursorLocation { x, y });
+
+        state.last_good_pos.replace(CursorLocation { x, y });
 
         UpdateCursorLocationResult {
             updated: true,

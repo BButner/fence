@@ -26,9 +26,11 @@ pub struct State {
 
 impl State {
     pub fn new(current_config: Config, tx: tokio::sync::broadcast::Sender<CursorLocation>) -> Self {
+        let current_regions = current_config.regions.clone();
+
         Self {
             current_config,
-            current_regions: Vec::new(),
+            current_regions,
             last_good_pos: None,
             tx,
         }
@@ -149,6 +151,8 @@ impl FenceService for FenceManager {
         let mut state = self.state.lock().await;
 
         state.current_config.save().await;
+
+        state.current_regions = state.current_config.regions.clone();
 
         Ok(Response::new(()))
     }

@@ -52,12 +52,16 @@ impl State {
         };
         let time_after_cursor_check = std::time::Instant::now();
 
-        println!(
-            "Cursor check took: {}ms",
-            time_after_cursor_check
-                .duration_since(time_before)
-                .as_millis()
-        );
+        // print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+        // print!(
+        //     "Cursor check took {}ms and {}ns",
+        //     time_after_cursor_check
+        //         .duration_since(time_before)
+        //         .as_millis(),
+        //     time_after_cursor_check
+        //         .duration_since(time_before)
+        //         .as_nanos()
+        // );
 
         let _ = self.tx.send(CursorLocation {
             x: response.location.x,

@@ -18,7 +18,7 @@ pub struct Region {
 }
 
 impl Region {
-    pub fn is_inside(self: &Self, x: i32, y: i32, offset: i32) -> bool {
+    pub fn is_inside(&self, x: i32, y: i32, offset: i32) -> bool {
         x >= self.x - offset
             && x <= self.x + self.width + offset
             && y >= self.y - offset

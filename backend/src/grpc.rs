@@ -87,7 +87,7 @@ impl FenceService for FenceManager {
 
                 match msg {
                     Ok(msg) => {
-                        if let Err(_) = tx.send(Ok(msg)).await {
+                        if (tx.send(Ok(msg)).await).is_err() {
                             break;
                         }
                     }

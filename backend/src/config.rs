@@ -57,7 +57,7 @@ impl Config {
     }
 
     /// Save the Config
-    pub async fn save(self: &Self) {
+    pub async fn save(&self) {
         Self::save_config(self).await;
     }
 

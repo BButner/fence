@@ -49,10 +49,13 @@ pub extern "C" fn init_fence() -> bool {
 pub extern "C" fn try_update_mouse_location(x: i32, y: i32) -> UpdateMouseLocationResult {
     let state = unsafe { STATE.as_ref().unwrap() };
 
-    state.blocking_lock().try_update_cursor_location(x, y);
+    let result = state.blocking_lock().try_update_cursor_location(x, y);
 
     UpdateMouseLocationResult {
-        updated: true,
-        location: MouseLocation { x, y },
+        updated: result.updated,
+        location: MouseLocation {
+            x: result.location.x,
+            y: result.location.y,
+        },
     }
 }

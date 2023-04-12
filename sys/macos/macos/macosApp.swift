@@ -8,76 +8,57 @@
 import SwiftUI
 import AppKit
 
+func cgEventCallback(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent, refcon: UnsafeMutableRawPointer?) -> Unmanaged<CGEvent>? {
+    let result = try_update_mouse_location(Int32(event.location.x), Int32(event.location.y));
+    
+    if !result.updated {
+        print("returning nil for event \(type)")
+        return nil;
+    }
+    
+    return Unmanaged.passUnretained(event);
+}
+
 @main
 struct macosApp: App {
-    @State var currentNumber: String = "9"
-    @State var lastDeltaX: Double = 0;
-    @State var lastDeltaY: Double = 0;
-    
-    init() {
-        
-    }
-    
-    func test_handler(event: NSEvent!) {
-        let location = NSEvent.mouseLocation;
-        let screen = activeScreen();
-        
-        if (screen != nil) {
-            let deltaX = event.deltaX - lastDeltaX;
-            let deltaY = event.deltaY - lastDeltaY;
-            
-            let newX = location.x + deltaX;
-            let flippedY = screen!.frame.size.height - location.y;
-            let newY = flippedY + deltaY;
-                        
-//            try_update_mouse_location(Int32(location.x), Int32(newY));
-            
-            let result = try_update_mouse_location(Int32(newX), Int32(newY));
-            
-            print(result)
-            
-            if (!result.updated) {
-                print(result)
-                print("should be setting it back to a valid point");
-                CGWarpMouseCursorPosition(CGPoint(x: Double(result.location.x), y: Double(result.location.y)));
-            } else {
-                CGWarpMouseCursorPosition(CGPoint(x: newX, y: newY));
-            }
-            
-            lastDeltaX = newX - location.x;
-            lastDeltaY = newY - flippedY;
-        }
-    }
-    
-    func activeScreen() -> NSScreen? {
-        let mouseLocation = NSEvent.mouseLocation
-        let screens = NSScreen.screens
-        let screenWithMouse = (screens.first { NSMouseInRect(mouseLocation, $0.frame, false) })
-
-        return screenWithMouse
-    }
+    @State var currentNumber: String = "9";
+    @State var currentTap: CFMachPort? = nil;
     
     var body: some Scene {
-//        WindowGroup {
-//            ContentView()
-//        }
         MenuBarExtra(currentNumber, systemImage: "\(currentNumber).square") {
-            Button("Init Server") {
+            Button("Init Fence") {
                 let result = init_fence();
                 
                 print(result);
                 
+                let eventMask =
+                (1 << CGEventType.mouseMoved.rawValue)
+                | (1 << CGEventType.leftMouseDown.rawValue)
+                | (1 << CGEventType.leftMouseUp.rawValue)
+                | (1 << CGEventType.leftMouseDragged.rawValue)
+                | (1 << CGEventType.rightMouseDown.rawValue)
+                | (1 << CGEventType.rightMouseUp.rawValue)
+                | (1 << CGEventType.rightMouseDragged.rawValue)
+                | (1 << CGEventType.scrollWheel.rawValue)
+                
+                currentTap = CGEvent.tapCreate(
+                    tap: .cghidEventTap,
+                    place: .headInsertEventTap,
+                    options: .defaultTap,
+                    eventsOfInterest: CGEventMask(eventMask),
+                    callback: cgEventCallback,
+                    userInfo: nil
+                );
+                
+                if (currentTap == nil) {
+                    print("Failed to initialize Tap...");
+                    return;
+                }
+                                
+                let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, currentTap, 0);
+                CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes);
+                
                 currentNumber = result ? "1" : "0";
-                
-                NSEvent.addGlobalMonitorForEvents(matching: NSEvent.EventTypeMask.mouseMoved, handler: test_handler);
-            }
-            Button("Test Rust") {
-                currentNumber = "2"
-                
-            }
-            Button("Three") {
-                currentNumber = "3"
-                
             }
         }
     }

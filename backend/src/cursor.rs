@@ -17,7 +17,6 @@ pub(crate) fn try_update_cursor_location(
     if let Some(last_good_pos) = state.last_good_pos.as_mut() {
         let mut inside_region = false;
 
-        println!("Current regions: {:?}", state.current_regions);
         for region in state.current_regions.iter() {
             if region.is_inside(x, y, 0) {
                 inside_region = true;
@@ -62,8 +61,6 @@ pub(crate) fn try_update_cursor_location(
                 }
 
                 let _ = state.tx.send(CursorLocation { x: new_x, y: new_y });
-
-                println!("Updated Cursor Location: ({}, {})", new_x, new_y);
 
                 UpdateCursorLocationResult {
                     updated: false,

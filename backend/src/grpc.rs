@@ -94,6 +94,25 @@ impl FenceManager {
 #[tonic::async_trait]
 impl FenceService for FenceManager {
     type GetCursorLocationStream = ReceiverStream<Result<CursorLocation, Status>>;
+    type GetHeartbeatStream = ReceiverStream<Result<(), Status>>;
+
+    async fn get_heartbeat(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<Response<Self::GetHeartbeatStream>, Status> {
+        let (tx, rx) = tokio::sync::mpsc::channel(16);
+
+        tokio::spawn(async move {
+            loop {
+                if (tx.send(Ok(())).await).is_err() {
+                    break;
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            }
+        });
+
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
 
     async fn get_cursor_location(
         &self,

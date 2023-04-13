@@ -5,7 +5,11 @@ import "google/protobuf/empty.proto";
 package fence;
 
 service FenceService {
+  // Streams
   rpc GetCursorLocation(google.protobuf.Empty) returns (stream CursorLocation);
+  rpc GetHeartbeat(google.protobuf.Empty) returns (stream google.protobuf.Empty);
+
+  // Getters/Setters
   rpc GetRegions(google.protobuf.Empty) returns (GetRegionsResponse);
   rpc AddRegion(AddRegionRequest) returns (google.protobuf.Empty);
   rpc SaveConfig(google.protobuf.Empty) returns (google.protobuf.Empty);

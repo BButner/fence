@@ -30,12 +30,23 @@ pub async fn connect_grpc(
 
     match crate::grpc::connect_client(&hostname).await {
         Ok(client) => {
+            let mut heartbeat_client = client.client.clone();
+
             state.current_client = Some(client);
             let _ = window.app_handle().emit_all(
                 grpc_status::CONNECTED,
                 EventPayload::new(grpc_status::CONNECTED.to_string(), hostname),
             );
             state.grpc_status = grpc_status::CONNECTED.to_string();
+
+            tokio::spawn(async move {
+                let _ = heartbeat_client.get_heartbeat(()).await;
+
+                let _ = window.app_handle().emit_all(
+                    grpc_status::CONNECTION_LOST,
+                    EventPayload::new(grpc_status::CONNECTION_LOST.to_string(), "".to_string()),
+                );
+            });
         }
         Err(e) => {
             let _ = window.app_handle().emit_all(

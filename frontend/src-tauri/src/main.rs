@@ -1,10 +1,23 @@
 #![cfg_attr(
-  all(not(debug_assertions), target_os = "windows"),
-  windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
-fn main() {
-  tauri::Builder::default()
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+pub mod commands;
+pub mod events;
+pub mod grpc;
+pub mod state;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tauri::Builder::default()
+        .manage(state::FenceState::new())
+        .invoke_handler(tauri::generate_handler![
+            commands::get_state,
+            commands::connect_grpc
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+
+    Ok(())
 }

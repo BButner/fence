@@ -41,7 +41,7 @@ impl State {
     }
 
     pub fn try_update_cursor_location(&mut self, x: i32, y: i32) -> UpdateCursorLocationResult {
-        let time_before = std::time::Instant::now();
+        // let time_before = std::time::Instant::now();
         let response = if self.is_active {
             cursor::try_update_cursor_location(x, y, self)
         } else {
@@ -50,7 +50,7 @@ impl State {
                 updated: true,
             }
         };
-        let time_after_cursor_check = std::time::Instant::now();
+        // let time_after_cursor_check = std::time::Instant::now();
 
         // print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
         // print!(
@@ -74,19 +74,18 @@ impl State {
 
 #[derive(Debug)]
 pub struct FenceManager {
-    tx: tokio::sync::broadcast::Sender<CursorLocation>,
     rx: tokio::sync::broadcast::Receiver<CursorLocation>,
     state: Arc<Mutex<State>>,
+    get_displays_fn: fn() -> Vec<crate::display::Display>,
 }
 
 impl FenceManager {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: Config, get_displays_fn: fn() -> Vec<crate::display::Display>) -> Self {
         let (tx, rx) = tokio::sync::broadcast::channel(16);
-        let tx_inner = tx.clone();
         FenceManager {
-            tx,
             rx,
-            state: Arc::new(Mutex::new(State::new(config, tx_inner))),
+            state: Arc::new(Mutex::new(State::new(config, tx))),
+            get_displays_fn,
         }
     }
 }
@@ -166,6 +165,17 @@ impl FenceService for FenceManager {
         }))
     }
 
+    async fn get_displays(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<fence::GetDisplaysResponse>, tonic::Status> {
+        let displays = (self.get_displays_fn)();
+
+        Ok(tonic::Response::new(fence::GetDisplaysResponse {
+            displays: displays.iter().map(|display| display.into()).collect(),
+        }))
+    }
+
     async fn add_region(
         &self,
         request: tonic::Request<fence::AddRegionRequest>,
@@ -237,7 +247,9 @@ impl FenceService for FenceManager {
     }
 }
 
-pub async fn init_connection() -> Option<Arc<Mutex<State>>> {
+pub async fn init_connection(
+    get_displays_fn: fn() -> Vec<crate::display::Display>,
+) -> Option<Arc<Mutex<State>>> {
     let addr = "0.0.0.0:1234".parse().unwrap();
     let config: Config;
 
@@ -246,7 +258,7 @@ pub async fn init_connection() -> Option<Arc<Mutex<State>>> {
         config = Config::load(None).await?;
     }
 
-    let manager = FenceManager::new(config);
+    let manager = FenceManager::new(config, get_displays_fn);
     let state = manager.state.clone();
 
     let service = fence::fence_service_server::FenceServiceServer::new(manager);

@@ -40,12 +40,43 @@ pub async fn connect_grpc(
             state.grpc_status = grpc_status::CONNECTED.to_string();
 
             tokio::spawn(async move {
-                let _ = heartbeat_client.get_heartbeat(()).await;
+                let stream = heartbeat_client.get_heartbeat(()).await;
 
-                let _ = window.app_handle().emit_all(
-                    grpc_status::CONNECTION_LOST,
-                    EventPayload::new(grpc_status::CONNECTION_LOST.to_string(), "".to_string()),
-                );
+                match stream {
+                    Ok(stream) => {
+                        // get all the messages from the stream
+                        let mut stream = stream.into_inner();
+
+                        loop {
+                            match stream.message().await {
+                                Ok(Some(_)) => {}
+                                Ok(None) => {
+                                    let _ = window.app_handle().emit_all(
+                                        grpc_status::CONNECTION_LOST,
+                                        EventPayload::new(
+                                            grpc_status::CONNECTION_LOST.to_string(),
+                                            "Connection lost".to_string(),
+                                        ),
+                                    );
+                                    break;
+                                }
+                                Err(e) => {
+                                    let _ = window.app_handle().emit_all(
+                                        grpc_status::CONNECTION_LOST,
+                                        EventPayload::new(
+                                            grpc_status::CONNECTION_LOST.to_string(),
+                                            e.to_string(),
+                                        ),
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        println!("Error getting heartbeat stream");
+                    }
+                }
             });
         }
         Err(e) => {

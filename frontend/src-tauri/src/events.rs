@@ -6,6 +6,7 @@ pub mod grpc_status {
     pub const DISCONNECTED: &str = "DISCONNECTED";
     pub const ERROR: &str = "ERROR";
     pub const CONNECTION_LOST: &str = "CONNECTION_LOST";
+    pub const HEARTBEAT: &str = "HEARTBEAT";
 }
 
 #[derive(Serialize, Deserialize, Clone)]

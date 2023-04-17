@@ -1,9 +1,10 @@
-use std::sync::Arc;
+use std::{io::Error, mem, sync::Arc};
 
-use backend::grpc::State;
+use backend::{display::Display, grpc::State};
 use tokio::sync::Mutex;
 use windows::Win32::{
-    Foundation::{LPARAM, LRESULT, WPARAM},
+    Foundation::{BOOL, LPARAM, LRESULT, RECT, TRUE, WPARAM},
+    Graphics::Gdi::{EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITORINFOEXW},
     UI::WindowsAndMessaging::{
         CallNextHookEx, GetMessageA, SetCursorPos, SetWindowsHookExW, HHOOK, MOUSEHOOKSTRUCT,
         WH_MOUSE_LL,
@@ -17,7 +18,7 @@ static mut MOUSE_HOOK: Option<HHOOK> = None;
 
 impl WindowsCursorHandler {
     pub async fn new() -> Self {
-        let result = backend::init_fence().await;
+        let result = backend::init_fence(Self::enumerate_monitors).await;
 
         unsafe { STATE = result };
 
@@ -48,6 +49,35 @@ impl WindowsCursorHandler {
         });
     }
 
+    fn enumerate_monitors() -> Vec<Display> {
+        let mut monitors = Vec::<MONITORINFOEXW>::new();
+        let userdata = &mut monitors as *mut _;
+
+        let result = unsafe {
+            EnumDisplayMonitors(
+                HDC::default(),
+                None,
+                Some(Self::enumerate_monitors_callback),
+                LPARAM(userdata as isize),
+            )
+        };
+
+        if result != TRUE {
+            panic!("Could not enumerate monitors: {}", Error::last_os_error());
+        }
+
+        monitors
+            .iter()
+            .map(|monitor| Display {
+                width: monitor.monitorInfo.rcMonitor.right - monitor.monitorInfo.rcMonitor.left,
+                height: monitor.monitorInfo.rcMonitor.bottom - monitor.monitorInfo.rcMonitor.top,
+                top: monitor.monitorInfo.rcMonitor.top,
+                left: monitor.monitorInfo.rcMonitor.left,
+                is_primary: monitor.monitorInfo.dwFlags == 1,
+            })
+            .collect()
+    }
+
     unsafe extern "system" fn mouse_hook_callback(
         code: i32,
         w_param: WPARAM,
@@ -68,5 +98,25 @@ impl WindowsCursorHandler {
         }
 
         LRESULT(1)
+    }
+
+    unsafe extern "system" fn enumerate_monitors_callback(
+        monitor: HMONITOR,
+        _: HDC,
+        _: *mut RECT,
+        userdata: LPARAM,
+    ) -> BOOL {
+        let monitors: &mut Vec<MONITORINFOEXW> = mem::transmute(userdata);
+        let mut monitor_info: MONITORINFOEXW = mem::zeroed();
+
+        monitor_info.monitorInfo.cbSize = mem::size_of::<MONITORINFOEXW>() as u32;
+        let monitor_info_ptr = <*mut _>::cast(&mut monitor_info.monitorInfo);
+
+        let result = GetMonitorInfoW(monitor, monitor_info_ptr);
+        if result == TRUE {
+            monitors.push(monitor_info);
+        }
+
+        TRUE
     }
 }

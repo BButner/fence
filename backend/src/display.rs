@@ -2,11 +2,11 @@ use crate::grpc::fence;
 
 #[derive(Debug)]
 pub struct Display {
-    width: i32,
-    height: i32,
-    top: i32,
-    left: i32,
-    is_primary: bool,
+    pub width: i32,
+    pub height: i32,
+    pub top: i32,
+    pub left: i32,
+    pub is_primary: bool,
 }
 
 impl From<fence::Display> for Display {

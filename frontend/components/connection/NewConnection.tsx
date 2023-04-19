@@ -12,7 +12,7 @@ export const NewConnection: React.FC = () => {
             type="text"
             className="h-14 w-96 rounded-lg border-4 border-indigo-500 px-2 text-2xl outline-none transition-all focus:ring-8 focus:ring-indigo-500/50 dark:bg-gray-950 dark:text-white"
           />
-          <button className="h-14	rounded-lg bg-indigo-500 px-8 text-xl text-white outline-none transition-all hover:bg-indigo-600 focus:ring-8 focus:ring-indigo-500/50">
+          <button className="h-14	rounded-lg bg-indigo-500/20 px-8 text-xl text-indigo-800 outline-none transition-all hover:bg-indigo-500/30 focus:ring-8 focus:ring-indigo-500/50 dark:text-indigo-300">
             Connect
           </button>
         </div>

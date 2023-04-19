@@ -2,5 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+	font-family: "Cascadia Code";
+	src: url("/fonts/CascadiaCode.woff2") format("woff2");
+}
+
 body {
+	font-family: "Cascadia Code";
 }

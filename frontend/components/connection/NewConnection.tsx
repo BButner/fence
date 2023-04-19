@@ -10,9 +10,9 @@ export const NewConnection: React.FC = () => {
         <div className="flex items-center space-x-4">
           <input
             type="text"
-            className="h-14 w-96 rounded-lg border-4 border-indigo-500 px-2 text-2xl shadow-xl outline-none transition-all focus:ring-8 focus:ring-indigo-500/50 dark:bg-gray-950 dark:text-white"
+            className="h-14 w-96 rounded-lg border-4 border-indigo-500 px-2 text-2xl outline-none transition-all focus:ring-8 focus:ring-indigo-500/50 dark:bg-gray-950 dark:text-white"
           />
-          <button className="h-14	rounded-lg bg-indigo-500 px-8 text-xl text-white shadow-xl outline-none transition-all hover:bg-indigo-600 focus:ring-8 focus:ring-indigo-500/50">
+          <button className="h-14	rounded-lg bg-indigo-500 px-8 text-xl text-white outline-none transition-all hover:bg-indigo-600 focus:ring-8 focus:ring-indigo-500/50">
             Connect
           </button>
         </div>

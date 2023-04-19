@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { NewConnection } from "@/components/connection/NewConnection"
+import { PreviousConnections } from "@/components/connection/PreviousConnections"
 import { invoke } from "@/lib/tauri"
 
 export default function Home() {
@@ -15,15 +17,9 @@ export default function Home() {
   }
 
   return (
-    <div className="flex items-center justify-center">
-      <p>The Beginning...</p>
-      <input
-        type="text"
-        value={hostname}
-        onChange={(e) => setHostname(e.currentTarget.value)}
-      />
-      <button onClick={() => void testConnection()}>Test Connection</button>
-      <button onClick={() => void logState()}>Log State</button>
+    <div className="grid grid-flow-col grid-cols-[320px_1fr]">
+      <PreviousConnections />
+      <NewConnection />
     </div>
   )
 }

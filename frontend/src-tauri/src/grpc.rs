@@ -9,7 +9,7 @@ pub struct GrpcClient {
 }
 
 pub async fn connect_client(hostname: &str) -> Result<GrpcClient, Box<dyn std::error::Error>> {
-    let channel = tonic::transport::Channel::from_shared(format!("http://{}", hostname))?
+    let channel = tonic::transport::Channel::from_shared(hostname.to_owned())?
         .connect()
         .await?;
     Ok(GrpcClient {

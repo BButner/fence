@@ -18,9 +18,9 @@ export async function invoke<T>(
   return tauriInvoke(cmd, args)
 }
 
-export async function listen(
+export async function listen<T>(
   event: string,
-  callback: EventCallback<unknown>,
+  callback: EventCallback<T>,
 ): Promise<UnlistenFn | void> {
   if (isNode()) {
     // This shouldn't ever happen when React fully loads
@@ -28,5 +28,5 @@ export async function listen(
   }
   const tauriAppsApi = await import("@tauri-apps/api/event")
   const tauriListen = tauriAppsApi.listen
-  return tauriListen(event, callback)
+  return tauriListen<T>(event, callback)
 }

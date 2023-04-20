@@ -5,3 +5,8 @@ export enum GrpcEvent {
   ERROR = "ERROR",
   CONNECTION_LOST = "CONNECTION_LOST",
 }
+
+export interface IEventPayload {
+  event: string
+  payload: string
+}

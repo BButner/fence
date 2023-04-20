@@ -80,6 +80,8 @@ pub async fn connect_grpc(
             });
         }
         Err(e) => {
+            println!("{:?}", e);
+
             let _ = window.app_handle().emit_all(
                 grpc_status::ERROR,
                 EventPayload::new(grpc_status::ERROR.to_string(), e.to_string()),

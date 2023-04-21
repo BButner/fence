@@ -1,6 +1,7 @@
 import { faCircleNotch, faPlug } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useAtomValue } from "jotai"
+import { useAtom } from "jotai"
+import { useRouter } from "next/router"
 import { useState } from "react"
 
 import { connectionStateAtom, ConnectionStatus } from "@/lib/state/connection"
@@ -8,7 +9,8 @@ import { invoke } from "@/lib/tauri"
 
 export const NewConnection: React.FC = () => {
   const [hostname, setHostname] = useState("")
-  const connectionState = useAtomValue(connectionStateAtom)
+  const [connectionState, setConnectionState] = useAtom(connectionStateAtom)
+  const router = useRouter()
 
   const logState = async () => {
     console.log("getting state...")
@@ -17,7 +19,17 @@ export const NewConnection: React.FC = () => {
 
   const initConnection = async () => {
     console.log("connecting...")
-    await invoke("connect_grpc", { hostname }).then(async () => await logState())
+    await invoke("connect_grpc", { hostname }).then(async () => {
+      await logState()
+
+      setConnectionState((state) => ({
+        ...state,
+        hostname,
+      }))
+
+      const encodedHostname = encodeURIComponent(hostname)
+      await router.push(`/hostname/${encodedHostname}`)
+    })
   }
 
   return (

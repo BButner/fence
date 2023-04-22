@@ -11,4 +11,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 backend = { path = "../backend" }
+libc = "0.2.142"
 tokio = { version = "1.27.0", features = ["rt", "rt-multi-thread"] }

@@ -1,6 +1,7 @@
 use crate::grpc::fence;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[repr(C)]
 pub struct Display {
     pub width: i32,
     pub height: i32,

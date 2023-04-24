@@ -22,7 +22,7 @@ export const ConnectionStatusBar: React.FC = () => {
   }
 
   return (
-    <div className="flex h-9 w-screen bg-gray-300 text-lg">
+    <div className="flex h-6 w-screen bg-gray-300 text-sm">
       <button
         onClick={() => void onClick()}
         className={clsx(

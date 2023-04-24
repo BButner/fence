@@ -1,4 +1,5 @@
 import { UnlistenFn } from "@tauri-apps/api/event"
+import { EventEmitter } from "events"
 import { useAtom } from "jotai"
 import { useEffect } from "react"
 
@@ -6,12 +7,14 @@ import { GrpcEvent, IEventPayload } from "@/lib/events"
 import { connectionStateAtom, ConnectionStatus } from "@/lib/state/connection"
 import { listen } from "@/lib/tauri"
 
+export const GrpcEventEmitter = new EventEmitter()
+
 export const EventHandler = () => {
   const [connectionState, setConnectionState] = useAtom(connectionStateAtom)
 
   useEffect(() => {
     const unlistenConnecting = listen<IEventPayload>(GrpcEvent.CONNECTING, (event) => {
-      console.log("connecting", event)
+      GrpcEventEmitter.emit(GrpcEvent.CONNECTING, event)
       setConnectionState((state) => ({
         ...state,
         status: ConnectionStatus.CONNECTING,
@@ -19,7 +22,7 @@ export const EventHandler = () => {
     })
 
     const unlistenConnected = listen(GrpcEvent.CONNECTED, (event) => {
-      console.log("connected", event)
+      GrpcEventEmitter.emit(GrpcEvent.CONNECTED, event)
       setConnectionState((state) => ({
         ...state,
         status: ConnectionStatus.CONNECTED,
@@ -27,7 +30,7 @@ export const EventHandler = () => {
     })
 
     const unlistenDisconnected = listen(GrpcEvent.DISCONNECTED, (event) => {
-      console.log("disconnected", event)
+      GrpcEventEmitter.emit(GrpcEvent.DISCONNECTED, event)
       setConnectionState((state) => ({
         ...state,
         status: ConnectionStatus.DISCONNECTED,
@@ -35,7 +38,7 @@ export const EventHandler = () => {
     })
 
     const unlistenError = listen(GrpcEvent.ERROR, (event) => {
-      console.log("error", event)
+      GrpcEventEmitter.emit(GrpcEvent.ERROR, event)
       setConnectionState((state) => ({
         ...state,
         status: ConnectionStatus.ERROR,
@@ -43,7 +46,7 @@ export const EventHandler = () => {
     })
 
     const unlistenConnectionLost = listen(GrpcEvent.CONNECTION_LOST, (event) => {
-      console.log("connection lost", event)
+      GrpcEventEmitter.emit(GrpcEvent.CONNECTION_LOST, event)
       setConnectionState((state) => ({
         ...state,
         status: ConnectionStatus.CONNECTION_LOST,

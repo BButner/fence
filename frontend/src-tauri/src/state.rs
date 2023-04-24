@@ -25,12 +25,14 @@ pub struct State {
 #[serde(rename_all = "camelCase")]
 pub struct StateResponse {
     pub current_hostname: Option<String>,
+    pub grpc_status: String,
 }
 
 impl From<tokio::sync::MutexGuard<'_, State>> for StateResponse {
     fn from(state: tokio::sync::MutexGuard<'_, State>) -> Self {
         Self {
             current_hostname: state.current_hostname.clone(),
+            grpc_status: state.grpc_status.clone(),
         }
     }
 }

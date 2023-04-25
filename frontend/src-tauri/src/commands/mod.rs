@@ -1,6 +1,8 @@
 use anyhow::Result;
 use tauri::Manager;
 
+pub mod displays;
+
 use crate::{
     events::{grpc_status, EventPayload},
     state::{FenceState, StateResponse},

@@ -1,2 +1,18 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import type { FenceClientStore } from "$lib/store";
+	import { getContext } from "svelte";
+	import { onMount } from "svelte";
+
+	let hostname = '';
+	const context: FenceClientStore = getContext("fenceClientStore");
+	const { grpcStatus } = context;
+
+	onMount(() => {
+		console.log($grpcStatus)
+	})
+</script>
+
+<input type="text" bind:value={hostname}>
+
+<button on:click={() => context.connectGrpc(hostname)}>Connect</button>
+<p>{$grpcStatus}</p>

@@ -25,9 +25,4 @@ export class FenceClientStore {
 			this.grpcStatus.set(state.grpcStatus);
 		});
 	};
-
-	// get the value of the hostname with a subscription
-	public getHostname = () => {
-		return get(this.hostname);
-	};
 }

@@ -6,7 +6,7 @@ export enum GrpcStatus {
 	CONNECTION_LOST = 'CONNECTION_LOST'
 }
 
-export interface IEventPayload {
+export interface IGrpcEventPayload {
 	event: GrpcStatus;
 	payload: string;
 }

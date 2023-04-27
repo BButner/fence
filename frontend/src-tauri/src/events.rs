@@ -9,6 +9,8 @@ pub mod grpc_status {
     pub const HEARTBEAT: &str = "HEARTBEAT";
 }
 
+pub const GRPC_STATUS: &str = "EVENT_GRPC_STATUS";
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct EventPayload {
     pub event: String,

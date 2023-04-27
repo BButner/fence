@@ -4,7 +4,7 @@ use tauri::Manager;
 pub mod displays;
 
 use crate::{
-    events::{grpc_status, EventPayload},
+    events::{grpc_status, EventPayload, GRPC_STATUS},
     state::{FenceState, StateResponse},
 };
 
@@ -25,7 +25,7 @@ pub async fn connect_grpc(
     state.current_hostname = Some(hostname.clone());
 
     let _ = window.app_handle().emit_all(
-        grpc_status::CONNECTING,
+        GRPC_STATUS,
         EventPayload::new(grpc_status::CONNECTING.to_string(), "".to_string()),
     );
     state.grpc_status = grpc_status::CONNECTING.to_string();
@@ -36,7 +36,7 @@ pub async fn connect_grpc(
 
             state.current_client = Some(client);
             let _ = window.app_handle().emit_all(
-                grpc_status::CONNECTED,
+                GRPC_STATUS,
                 EventPayload::new(grpc_status::CONNECTED.to_string(), hostname),
             );
             state.grpc_status = grpc_status::CONNECTED.to_string();
@@ -54,7 +54,7 @@ pub async fn connect_grpc(
                                 Ok(Some(_)) => {}
                                 Ok(None) => {
                                     let _ = window.app_handle().emit_all(
-                                        grpc_status::CONNECTION_LOST,
+                                        GRPC_STATUS,
                                         EventPayload::new(
                                             grpc_status::CONNECTION_LOST.to_string(),
                                             "Connection lost".to_string(),
@@ -64,7 +64,7 @@ pub async fn connect_grpc(
                                 }
                                 Err(e) => {
                                     let _ = window.app_handle().emit_all(
-                                        grpc_status::CONNECTION_LOST,
+                                        GRPC_STATUS,
                                         EventPayload::new(
                                             grpc_status::CONNECTION_LOST.to_string(),
                                             e.to_string(),
@@ -85,7 +85,7 @@ pub async fn connect_grpc(
             println!("{:?}", e);
 
             let _ = window.app_handle().emit_all(
-                grpc_status::ERROR,
+                GRPC_STATUS,
                 EventPayload::new(grpc_status::ERROR.to_string(), e.to_string()),
             );
             state.grpc_status = grpc_status::ERROR.to_string();

@@ -17,6 +17,7 @@
 		fenceClientStore.updateFromState();
 
 		unlisten = await listen<IGrpcEventPayload>('EVENT_GRPC_STATUS', (event) => {
+			console.log(event.event);
 			fenceClientStore.grpcStatus.set(GrpcStatus[event.payload.event as keyof typeof GrpcStatus]);
 		});
 	});

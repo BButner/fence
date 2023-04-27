@@ -5,7 +5,7 @@ pub mod displays;
 pub mod regions;
 
 use crate::{
-    events::{grpc_status, EventPayload, GRPC_STATUS},
+    events::{grpc_status, CursorPositionPayload, EventPayload, CURSOR_POSITION, GRPC_STATUS},
     state::{FenceState, StateResponse},
 };
 
@@ -34,6 +34,40 @@ pub async fn connect_grpc(
     match crate::grpc::connect_client(&hostname).await {
         Ok(client) => {
             let mut heartbeat_client = client.client.clone();
+            let mut cursor_client = client.client.clone();
+
+            let cursor_handle = window.app_handle().clone();
+
+            tokio::spawn(async move {
+                let stream = cursor_client.get_cursor_location(()).await;
+
+                match stream {
+                    Ok(stream) => {
+                        // get all the messages from the stream
+                        let mut stream = stream.into_inner();
+
+                        loop {
+                            match stream.message().await {
+                                Ok(Some(pos)) => {
+                                    let _ = cursor_handle.emit_all(
+                                        CURSOR_POSITION,
+                                        CursorPositionPayload { x: pos.x, y: pos.y },
+                                    );
+                                }
+                                Ok(None) => {
+                                    break;
+                                }
+                                Err(e) => {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        println!("Error getting cursor stream");
+                    }
+                }
+            });
 
             state.current_client = Some(client);
             let _ = window.app_handle().emit_all(

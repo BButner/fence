@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { FenceClientStore } from '$lib/store';
-	import { getContext } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import { onMount } from 'svelte';
 	import clsx from 'clsx';
+	import { listen } from '@tauri-apps/api/event';
 
 	const context: FenceClientStore = getContext('fenceClientStore');
 	const { displays, regions } = context;
@@ -10,6 +11,14 @@
 	let factor = 0.1;
 	let topOffset = 0;
 	let leftOffset = 0;
+	let cursorX = 0;
+	let cursorY = 0;
+	let unlisten: () => void;
+
+	interface ICursorPositionPayload {
+		x: number;
+		y: number;
+	}
 
 	const drawCanvas = () => {
 		topOffset = -$displays.reduce((acc, display) => Math.min(acc, display.top), 0);
@@ -28,12 +37,22 @@
 		canvas.style.height = `${highestBottom * factor}px`;
 	};
 
-	onMount(() => {
+	onMount(async () => {
 		drawCanvas();
 
 		displays.subscribe(() => {
 			drawCanvas();
 		});
+
+		unlisten = await listen<ICursorPositionPayload>('EVENT_CURSOR_POSITION', (event) => {
+			console.log(event.payload.x, event.payload.y)
+			cursorX = event.payload.x;
+			cursorY = event.payload.y;
+		});
+	});
+
+	onDestroy(() => {
+		unlisten();
 	});
 </script>
 
@@ -62,6 +81,9 @@
 					height: {region.height * factor}px;"
 				/>
 			{/each}
+
+			<div class="w-2 h-2 bg-violet-800 rounded-full absolute"
+			style="top: {cursorY * factor + topOffset * factor}px; left: {cursorX * factor + leftOffset + factor}px"></div>
 		</div>
 	</div>
 </div>

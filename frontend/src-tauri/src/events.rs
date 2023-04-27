@@ -10,11 +10,18 @@ pub mod grpc_status {
 }
 
 pub const GRPC_STATUS: &str = "EVENT_GRPC_STATUS";
+pub const CURSOR_POSITION: &str = "EVENT_CURSOR_POSITION";
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct EventPayload {
     pub event: String,
     pub payload: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct CursorPositionPayload {
+    pub x: i32,
+    pub y: i32,
 }
 
 impl EventPayload {

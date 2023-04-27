@@ -10,13 +10,7 @@ export class FenceClientStore {
 	) {}
 
 	public connectGrpc = async (hostname: string) => {
-		invoke('connect_grpc', { hostname })
-			.then((res) => {
-				this.grpcStatus.set(GrpcStatus.CONNECTED);
-			})
-			.catch((err) => {
-				this.grpcStatus.set(GrpcStatus.ERROR);
-			});
+		invoke('connect_grpc', { hostname });
 	};
 
 	public updateFromState = async () => {

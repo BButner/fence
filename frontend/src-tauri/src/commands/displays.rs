@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::FenceState;
+use crate::{events::grpc_status, state::FenceState};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,6 +15,11 @@ pub struct Display {
 #[tauri::command]
 pub async fn get_displays(state: tauri::State<'_, FenceState>) -> Result<Vec<Display>, ()> {
     let mut state = state.0.lock().await;
+
+    if state.grpc_status != grpc_status::CONNECTED {
+        return Ok(vec![]);
+    }
+
     let raw_displays = state
         .current_client
         .as_mut()

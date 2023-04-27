@@ -2,6 +2,7 @@ use anyhow::Result;
 use tauri::Manager;
 
 pub mod displays;
+pub mod regions;
 
 use crate::{
     events::{grpc_status, EventPayload, GRPC_STATUS},

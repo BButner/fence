@@ -4,4 +4,5 @@ export interface IDisplay {
 	top: number;
 	left: number;
 	isPrimary: boolean;
+	screenData: string;
 }

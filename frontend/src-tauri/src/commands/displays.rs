@@ -10,6 +10,7 @@ pub struct Display {
     top: i32,
     left: i32,
     is_primary: bool,
+    screen_data: String,
 }
 
 #[tauri::command]
@@ -50,6 +51,7 @@ impl From<&crate::grpc::fence::Display> for Display {
             left: display.left,
             top: display.top,
             is_primary: display.is_primary,
+            screen_data: display.screen_data.clone(),
         }
     }
 }

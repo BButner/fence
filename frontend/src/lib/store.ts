@@ -24,6 +24,7 @@ export class FenceClientStore {
 		});
 
 		await invoke<IDisplay[]>('get_displays').then((displays) => {
+			console.log('get_displays', displays);
 			this.displays.update(() => displays);
 		});
 

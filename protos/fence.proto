@@ -48,4 +48,5 @@ message Display {
   int32 top = 3;
   int32 left = 4;
   bool is_primary = 5;
+  string screen_data = 6;
 }

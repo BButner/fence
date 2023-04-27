@@ -42,6 +42,7 @@
 
 		displays.subscribe(() => {
 			drawCanvas();
+			console.log($displays);
 		});
 
 		unlisten = await listen<ICursorPositionPayload>('EVENT_CURSOR_POSITION', (event) => {
@@ -68,7 +69,13 @@
 					left: {display.left * factor + leftOffset * factor}px;
 					width: {display.width * factor}px;
 					height: {display.height * factor}px;"
-				/>
+				>
+					<img
+						class="w-full h-full object-cover"
+						src="data:image/png;base64,{display.screenData}"
+						alt="display"
+					/>
+				</div>
 			{/each}
 
 			{#each $regions as region}

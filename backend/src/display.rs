@@ -8,6 +8,7 @@ pub struct Display {
     pub top: i32,
     pub left: i32,
     pub is_primary: bool,
+    pub screen_data: String,
 }
 
 impl From<fence::Display> for Display {
@@ -18,6 +19,7 @@ impl From<fence::Display> for Display {
             top: display.top,
             left: display.left,
             is_primary: display.is_primary,
+            screen_data: display.screen_data,
         }
     }
 }
@@ -30,6 +32,7 @@ impl From<&Display> for fence::Display {
             top: display.top,
             left: display.left,
             is_primary: display.is_primary,
+            screen_data: display.screen_data.clone(),
         }
     }
 }

@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use base64::{engine::general_purpose, Engine as _};
+use screenshots::Screen;
 use tokio::sync::Mutex;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::Server;
@@ -125,8 +127,6 @@ impl FenceService for FenceManager {
             loop {
                 let msg = rx_raw.recv().await;
 
-                println!("Received message: {:?}", msg);
-
                 match msg {
                     Ok(msg) => {
                         if (tx.send(Ok(msg)).await).is_err() {
@@ -171,8 +171,23 @@ impl FenceService for FenceManager {
     ) -> Result<tonic::Response<fence::GetDisplaysResponse>, tonic::Status> {
         let displays = (self.get_displays_fn)();
 
+        let displays = displays
+            .iter()
+            .map(|display| {
+                let mut display: fence::Display = display.into();
+                let screen = Screen::from_point(display.left, display.top).unwrap();
+
+                let image = screen.capture().unwrap();
+
+                let encoded: String = general_purpose::STANDARD_NO_PAD.encode(image.buffer());
+                display.screen_data = encoded;
+
+                display
+            })
+            .collect::<Vec<_>>();
+
         Ok(tonic::Response::new(fence::GetDisplaysResponse {
-            displays: displays.iter().map(|display| display.into()).collect(),
+            displays,
         }))
     }
 

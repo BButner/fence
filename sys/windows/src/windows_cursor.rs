@@ -74,6 +74,7 @@ impl WindowsCursorHandler {
                 top: monitor.monitorInfo.rcMonitor.top,
                 left: monitor.monitorInfo.rcMonitor.left,
                 is_primary: monitor.monitorInfo.dwFlags == 1,
+                screen_data: String::new(), // Empty, because this gets grabbed during runtime every fetch
             })
             .collect()
     }

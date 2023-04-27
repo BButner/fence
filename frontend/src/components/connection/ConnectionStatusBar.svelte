@@ -21,7 +21,7 @@
 	};
 </script>
 
-<div class="flex h-6 w-screen items-center bg-gray-300 text-sm dark:bg-gray-800">
+<div class="flex h-6 w-full items-center bg-gray-300 text-sm dark:bg-gray-800">
 	<button
 		on:click={statusButtonClick}
 		class={clsx(

@@ -24,6 +24,8 @@
 		topOffset = -$displays.reduce((acc, display) => Math.min(acc, display.top), 0);
 		leftOffset = -$displays.reduce((acc, display) => Math.min(acc, display.left), 0);
 
+		console.log('leftOffset', leftOffset);
+
 		const highestRight = $displays.reduce(
 			(acc, display) => Math.max(acc, display.left + leftOffset + display.width),
 			0
@@ -46,7 +48,7 @@
 		});
 
 		unlisten = await listen<ICursorPositionPayload>('EVENT_CURSOR_POSITION', (event) => {
-			console.log(event.payload.x, event.payload.y)
+			// console.log(event.payload.x, event.payload.y);
 			cursorX = event.payload.x;
 			cursorY = event.payload.y;
 		});
@@ -89,8 +91,11 @@
 				/>
 			{/each}
 
-			<div class="w-2 h-2 bg-violet-800 rounded-full absolute"
-			style="top: {cursorY * factor + topOffset * factor}px; left: {cursorX * factor + leftOffset + factor}px"></div>
+			<div
+				class="w-2 h-2 bg-violet-800 rounded-full absolute"
+				style="top: {cursorY * factor + topOffset * factor}px; left: {cursorX * factor +
+					leftOffset * factor}px"
+			/>
 		</div>
 	</div>
 </div>

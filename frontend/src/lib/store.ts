@@ -17,6 +17,14 @@ export class FenceClientStore {
 		invoke('connect_grpc', { hostname });
 	};
 
+	public refreshDisplays = async () => {
+		console.log('refreshDisplays');
+		await invoke<IDisplay[]>('get_displays').then((displays) => {
+			console.log('get_displays', displays);
+			this.displays.update(() => displays);
+		});
+	};
+
 	public updateFromState = async () => {
 		await invoke<IStateResponse>('get_state').then((state) => {
 			this.hostname.set(state.currentHostname);

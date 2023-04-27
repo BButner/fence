@@ -6,7 +6,7 @@
 	import { FenceClientStore } from '../lib/store';
 	import { setContext } from 'svelte';
 	import { emit, listen } from '@tauri-apps/api/event';
-	import type { IGrpcEventPayload } from '$lib/types/grpc-status';
+	import { GrpcStatus, type IGrpcEventPayload } from '$lib/types/grpc-status';
 
 	setContext('fenceClientStore', fenceClientStore);
 
@@ -17,8 +17,7 @@
 		fenceClientStore.updateFromState();
 
 		unlisten = await listen<IGrpcEventPayload>('EVENT_GRPC_STATUS', (event) => {
-			console.log('Setting status to ', event.payload.event);
-			fenceClientStore.grpcStatus.set(event.payload.event);
+			fenceClientStore.grpcStatus.set(GrpcStatus[event.payload.event as keyof typeof GrpcStatus]);
 		});
 	});
 

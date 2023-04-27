@@ -1,13 +1,56 @@
 <script lang="ts">
 	import Fa from 'svelte-fa';
 	import { faCircleNotch, faPlug } from '@fortawesome/free-solid-svg-icons';
-
+	import { clsx } from 'clsx';
 	import type { FenceClientStore } from '$lib/store';
-	import { GrpcStatus } from '$lib/types/grpc-status';
+	import { GrpcStatus, type IGrpcEventPayload } from '$lib/types/grpc-status';
 	import { getContext } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import { listen } from '@tauri-apps/api/event';
 
 	let context: FenceClientStore = getContext('fenceClientStore');
 	let connectingHostname = '';
+	let connectionInvalid = false;
+	let unlisten: () => void;
+
+	onMount(async () => {
+		unlisten = await listen<IGrpcEventPayload>('EVENT_GRPC_STATUS', (event) => {
+			let newStatus = GrpcStatus[event.payload.event as keyof typeof GrpcStatus];
+
+			if (newStatus === GrpcStatus.CONNECTED) {
+				let encodedUri = encodeURIComponent(connectingHostname);
+				window.location.href = `/hostname/${encodedUri}`;
+			}
+		});
+	});
+
+	const attemptConnect = async () => {
+		if (!connectingHostname) {
+			connectionInvalid = true;
+			setInvalidTimeout();
+			return;
+		}
+
+		try {
+			new URL(connectingHostname);
+		} catch (e) {
+			connectionInvalid = true;
+			setInvalidTimeout();
+			return;
+		}
+
+		context.connectGrpc(connectingHostname);
+	};
+
+	const setInvalidTimeout = () => {
+		setTimeout(() => {
+			connectionInvalid = false;
+		}, 2000);
+	};
+
+	onDestroy(() => {
+		unlisten();
+	});
 
 	const { grpcStatus } = context;
 </script>
@@ -30,13 +73,19 @@
 				bind:value={connectingHostname}
 				type="text"
 				placeholder="Hostname"
-				class="h-14 w-96 rounded-lg border-4 border-indigo-500 px-2 text-2xl outline-none transition-all focus:ring-8 focus:ring-indigo-500/50 dark:bg-gray-950 dark:text-white"
+				class={clsx(
+					'h-14 w-96 rounded-lg border-4 border-indigo-500 px-2 text-2xl outline-none transition-all focus:ring-8 focus:ring-indigo-500/50 dark:bg-gray-950 dark:text-white',
+					connectionInvalid &&
+						'border-red-500/50 focus:ring-red-500/50 dark:border-red-500/50 dark:focus:ring-red-500/50'
+				)}
 			/>
 			<button
-				on:click={() => {
-					context.connectGrpc(connectingHostname);
-				}}
-				class="flex h-14 w-44 items-center justify-between rounded-lg bg-indigo-500/20 px-8 text-xl text-indigo-800 outline-none transition-all hover:bg-indigo-500/30 focus:ring-8 focus:ring-indigo-500/50 dark:text-indigo-300"
+				on:click={attemptConnect}
+				class={clsx(
+					'flex h-14 w-44 items-center justify-between rounded-lg bg-indigo-500/20 px-8 text-xl text-indigo-800 outline-none transition-all hover:bg-indigo-500/30 focus:ring-8 focus:ring-indigo-500/50 dark:text-indigo-300',
+					connectionInvalid &&
+						'bg-red-500/20 hover:bg-red-500/40 text-red-800 dark:text-red-300 focus:ring-red-500/50'
+				)}
 			>
 				{#if $grpcStatus !== GrpcStatus.CONNECTING}
 					<Fa icon={faPlug} />

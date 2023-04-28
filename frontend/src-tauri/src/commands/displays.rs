@@ -10,7 +10,14 @@ pub struct Display {
     top: i32,
     left: i32,
     is_primary: bool,
-    screen_data: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisplayScreenshot {
+    image_data: String,
+    top: i32,
+    left: i32,
 }
 
 #[tauri::command]
@@ -43,6 +50,42 @@ pub async fn get_displays(state: tauri::State<'_, FenceState>) -> Result<Vec<Dis
     }
 }
 
+#[tauri::command]
+pub async fn get_display_screenshots(
+    state: tauri::State<'_, FenceState>,
+) -> Result<Vec<DisplayScreenshot>, ()> {
+    let mut state = state.0.lock().await;
+
+    if state.grpc_status != grpc_status::CONNECTED {
+        return Ok(vec![]);
+    }
+
+    let screenshots = state
+        .current_client
+        .as_mut()
+        .unwrap()
+        .client
+        .get_display_screenshots(())
+        .await;
+
+    match screenshots {
+        Ok(screenshots) => Ok(screenshots
+            .get_ref()
+            .display_screenshots
+            .iter()
+            .map(|s| DisplayScreenshot {
+                image_data: s.image_data.clone(),
+                top: s.top,
+                left: s.left,
+            })
+            .collect()),
+        Err(e) => {
+            println!("Error getting display screenshots: {:?}", e);
+            Ok(vec![])
+        }
+    }
+}
+
 impl From<&crate::grpc::fence::Display> for Display {
     fn from(display: &crate::grpc::fence::Display) -> Self {
         Display {
@@ -51,7 +94,6 @@ impl From<&crate::grpc::fence::Display> for Display {
             left: display.left,
             top: display.top,
             is_primary: display.is_primary,
-            screen_data: display.screen_data.clone(),
         }
     }
 }

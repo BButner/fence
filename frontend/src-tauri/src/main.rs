@@ -16,6 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             commands::get_state,
             commands::connect_grpc,
             commands::displays::get_displays,
+            commands::displays::get_display_screenshots,
             commands::regions::get_regions,
         ])
         .run(tauri::generate_context!())

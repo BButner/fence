@@ -5,9 +5,11 @@
 	import { faRefresh } from '@fortawesome/free-solid-svg-icons';
 	import Fa from 'svelte-fa';
 	import { listen } from '@tauri-apps/api/event';
+	import type { IDisplayScreenshot } from '$lib/types/displays';
+	import { invoke } from '@tauri-apps/api';
 
 	const context: FenceClientStore = getContext('fenceClientStore');
-	const { displays, regions } = context;
+	const { displays, regions, screenshots } = context;
 	let canvas: HTMLDivElement;
 	let factor = 0.1;
 	let topOffset = 0;
@@ -15,6 +17,7 @@
 	let cursorX = 0;
 	let cursorY = 0;
 	let unlisten: () => void;
+	let showScreenshots = false; //TODO This should be stored in the local config
 
 	interface ICursorPositionPayload {
 		x: number;
@@ -24,8 +27,6 @@
 	const drawCanvas = () => {
 		topOffset = -$displays.reduce((acc, display) => Math.min(acc, display.top), 0);
 		leftOffset = -$displays.reduce((acc, display) => Math.min(acc, display.left), 0);
-
-		console.log('leftOffset', leftOffset);
 
 		const highestRight = $displays.reduce(
 			(acc, display) => Math.max(acc, display.left + leftOffset + display.width),
@@ -40,16 +41,26 @@
 		canvas.style.height = `${highestBottom * factor}px`;
 	};
 
+	const handleShowScreenshots = () => {
+		if (showScreenshots) {
+			invoke<IDisplayScreenshot[]>('get_display_screenshots').then((result) => {
+				console.log(result);
+				console.log($displays);
+				$screenshots = result;
+			});
+		} else {
+			$screenshots = [];
+		}
+	};
+
 	onMount(async () => {
 		drawCanvas();
 
 		displays.subscribe(() => {
 			drawCanvas();
-			console.log($displays);
 		});
 
 		unlisten = await listen<ICursorPositionPayload>('EVENT_CURSOR_POSITION', (event) => {
-			// console.log(event.payload.x, event.payload.y);
 			cursorX = event.payload.x;
 			cursorY = event.payload.y;
 		});
@@ -72,13 +83,7 @@
 					left: {display.left * factor + leftOffset * factor}px;
 					width: {display.width * factor}px;
 					height: {display.height * factor}px;"
-				>
-					<img
-						class="w-full h-full object-cover"
-						src="data:image/png;base64,{display.screenData}"
-						alt="display"
-					/>
-				</div>
+				/>
 			{/each}
 
 			{#each $regions as region}
@@ -100,10 +105,25 @@
 		</div>
 	</div>
 
-	<button
-		on:click={async () => await context.refreshDisplays()}
-		class="font-semibold text-xs flex items-center space-y-2 py-1 px-5 ml-auto mt-4 dark:bg-gray-800 rounded"
+	<div
+		class="flex items-center justify-end mt-4 space-x-4 text-xs font-semibold text-gray-700 dark:text-gray-400"
 	>
-		Refresh
-	</button>
+		<div class="flex items-center">
+			<input
+				bind:checked={showScreenshots}
+				on:change={handleShowScreenshots}
+				type="checkbox"
+				name="showScreenshots"
+				id="checkbox-show-screenshots"
+			/>
+			<label for="checkbox-show-screenshots" class="ml-2"> Show Screenshots </label>
+		</div>
+		<button
+			on:click={async () => await context.refreshDisplays()}
+			class="flex items-center space-x-2 py-1 px-5 bg-gray-400/60 dark:bg-gray-800 rounded transition-all hover:bg-gray-400/80 dark:hover:bg-gray-700"
+		>
+			<Fa icon={faRefresh} />
+			<p>Refresh</p>
+		</button>
+	</div>
 </div>

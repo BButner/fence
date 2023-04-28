@@ -4,5 +4,10 @@ export interface IDisplay {
 	top: number;
 	left: number;
 	isPrimary: boolean;
-	screenData: string;
+}
+
+export interface IDisplayScreenshot {
+	imageData: string;
+	top: number;
+	left: number;
 }

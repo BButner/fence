@@ -17,6 +17,9 @@ service FenceService {
   rpc DeleteRegionById(DeleteRegionByIdRequest) returns (google.protobuf.Empty);
   rpc GetDisplays(google.protobuf.Empty) returns (GetDisplaysResponse);
 
+  rpc GetDisplayScreenshots(google.protobuf.Empty)
+      returns (DisplayScreenshotResponse);
+
   rpc ActivateLock(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc DeactivateLock(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
@@ -48,5 +51,14 @@ message Display {
   int32 top = 3;
   int32 left = 4;
   bool is_primary = 5;
-  string screen_data = 6;
+}
+
+message DisplayScreenshotResponse {
+  repeated DisplayScreenshot display_screenshots = 1;
+}
+
+message DisplayScreenshot {
+  string image_data = 1;
+  int32 top = 2;
+  int32 left = 3;
 }

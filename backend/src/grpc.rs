@@ -12,7 +12,7 @@ use crate::cursor::{self, UpdateCursorLocationResult};
 
 use self::fence::fence_service_server::FenceService;
 
-use self::fence::CursorLocation;
+use self::fence::{CursorLocation, DisplayScreenshot};
 
 pub mod fence {
     tonic::include_proto!("fence");
@@ -173,22 +173,41 @@ impl FenceService for FenceManager {
 
         let displays = displays
             .iter()
-            .map(|display| {
-                let mut display: fence::Display = display.into();
-                let screen = Screen::from_point(display.left, display.top).unwrap();
-
-                let image = screen.capture().unwrap();
-
-                let encoded: String = general_purpose::STANDARD_NO_PAD.encode(image.buffer());
-                display.screen_data = encoded;
-
-                display
-            })
+            .map(|display| display.into())
             .collect::<Vec<_>>();
 
         Ok(tonic::Response::new(fence::GetDisplaysResponse {
             displays,
         }))
+    }
+
+    async fn get_display_screenshots(
+        &self,
+        _reqest: tonic::Request<()>,
+    ) -> Result<tonic::Response<fence::DisplayScreenshotResponse>, tonic::Status> {
+        let screens = Screen::all();
+
+        match screens {
+            Ok(screens) => Ok(tonic::Response::new(fence::DisplayScreenshotResponse {
+                display_screenshots: screens
+                    .iter()
+                    .map(|screen| {
+                        let image = screen.capture().unwrap();
+                        let data_encoded: String =
+                            general_purpose::STANDARD_NO_PAD.encode(image.buffer());
+
+                        DisplayScreenshot {
+                            image_data: String::from(data_encoded),
+                            top: screen.display_info.y,
+                            left: screen.display_info.x,
+                        }
+                    })
+                    .collect(),
+            })),
+            Err(_) => Ok(tonic::Response::new(fence::DisplayScreenshotResponse {
+                display_screenshots: vec![],
+            })),
+        }
     }
 
     async fn add_region(

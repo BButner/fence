@@ -22,6 +22,7 @@ pub struct DisplayScreenshot {
 
 #[tauri::command]
 pub async fn get_displays(state: tauri::State<'_, FenceState>) -> Result<Vec<Display>, ()> {
+    println!("get_displays");
     let mut state = state.0.lock().await;
 
     if state.grpc_status != grpc_status::CONNECTED {
@@ -54,6 +55,7 @@ pub async fn get_displays(state: tauri::State<'_, FenceState>) -> Result<Vec<Dis
 pub async fn get_display_screenshots(
     state: tauri::State<'_, FenceState>,
 ) -> Result<Vec<DisplayScreenshot>, ()> {
+    println!("get_display_screenshots");
     let mut state = state.0.lock().await;
 
     if state.grpc_status != grpc_status::CONNECTED {

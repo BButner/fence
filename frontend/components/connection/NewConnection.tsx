@@ -1,3 +1,5 @@
+import { faCircleNotch, faPlug } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import clsx from "clsx"
 import { useAtomValue } from "jotai"
 import { useRouter } from "next/router"
@@ -71,14 +73,13 @@ export const NewConnection: React.FC = () => {
                 "bg-red-500/20 text-red-800 hover:bg-red-500/40 focus:ring-red-500/50 dark:text-red-300",
             )}
           >
-            {/* {#if $grpcStatus !== GrpcStatus.CONNECTING}
-					<Fa icon={faPlug} />
-				{/if}
-				{#if $grpcStatus === GrpcStatus.CONNECTING}
-					<span className="animate-spin">
-						<Fa icon={faCircleNotch} />
-					</span>
-				{/if} */}
+            {state.grpcStatus === GrpcStatus.CONNECTING ? (
+              <span className="animate-spin">
+                <FontAwesomeIcon icon={faCircleNotch} />
+              </span>
+            ) : (
+              <FontAwesomeIcon icon={faPlug} />
+            )}
             <p>Connect</p>
           </button>
         </div>

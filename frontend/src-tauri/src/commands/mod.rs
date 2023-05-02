@@ -11,7 +11,9 @@ use crate::{
 
 #[tauri::command]
 pub async fn get_state(state: tauri::State<'_, FenceState>) -> Result<StateResponse, ()> {
+    println!("get_state");
     let state = state.0.lock().await;
+    println!("after lock");
     Ok(state.into())
 }
 
@@ -21,6 +23,7 @@ pub async fn connect_grpc(
     state: tauri::State<'_, FenceState>,
     window: tauri::Window,
 ) -> Result<(), ()> {
+    println!("connect_grpc");
     let mut state = state.0.lock().await;
 
     state.current_hostname = Some(hostname.clone());

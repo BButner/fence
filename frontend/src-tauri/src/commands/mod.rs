@@ -115,6 +115,8 @@ pub async fn connect_grpc(
                     }
                 }
             });
+
+            Ok(())
         }
         Err(e) => {
             println!("{:?}", e);
@@ -124,8 +126,8 @@ pub async fn connect_grpc(
                 EventPayload::new(grpc_status::ERROR.to_string(), e.to_string()),
             );
             state.grpc_status = grpc_status::ERROR.to_string();
+
+            Err(())
         }
     }
-
-    Ok(())
 }

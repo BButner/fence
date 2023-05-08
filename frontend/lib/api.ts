@@ -1,17 +1,17 @@
+import { invoke } from "@tauri-apps/api"
+
+import { IDisplay } from "./types/displays"
+import { IFenceState } from "./types/fence-state"
+import { IRegion } from "./types/regions"
 import {
   COMMAND_CONNECT_GRPC,
   COMMAND_GET_DISPLAYS,
   COMMAND_GET_REGIONS,
   COMMAND_GET_STATE,
 } from "./commands"
-import { invoke } from "./tauri"
-import { IDisplay } from "./types/displays"
-import { IFenceState } from "./types/fence-state"
-import { IRegion } from "./types/regions"
 
 export abstract class FenceApi {
   public static connectGrpc = async (hostname: string): Promise<void> => {
-    console.log(`api.ts: connectGrpc: hostname: ${hostname}`)
     return await invoke<void>(COMMAND_CONNECT_GRPC, { hostname })
   }
 

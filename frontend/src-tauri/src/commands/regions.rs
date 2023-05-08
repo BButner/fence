@@ -14,43 +14,46 @@ pub struct Region {
 
 #[tauri::command]
 pub async fn get_regions(state: tauri::State<'_, FenceState>) -> Result<Vec<Region>, ()> {
-    println!("get_regions");
-    let mut state = state.0.lock().await;
+    let mut raw_regions;
 
-    if state.grpc_status != grpc_status::CONNECTED {
-        return Ok(vec![]);
+    {
+        let mut state = state.0.lock().await;
+
+        if state.grpc_status != grpc_status::CONNECTED {
+            return Ok(vec![]);
+        }
+
+        let regions_response = state
+            .current_client
+            .as_mut()
+            .unwrap()
+            .client
+            .get_regions(())
+            .await;
+
+        match regions_response {
+            Ok(regions) => {
+                raw_regions = regions
+                    .get_ref()
+                    .regions
+                    .iter()
+                    .map(|region| Region {
+                        width: region.width,
+                        height: region.height,
+                        x: region.x,
+                        y: region.y,
+                        id: region.id.clone(),
+                    })
+                    .collect();
+            }
+            Err(e) => {
+                println!("Error getting regions: {:?}", e);
+                return Ok(vec![]);
+            }
+        }
     }
 
-    let raw_regions = state
-        .current_client
-        .as_mut()
-        .unwrap()
-        .client
-        .get_regions(())
-        .await;
-
-    match raw_regions {
-        Ok(regions) => {
-            let regions_copy = regions.get_ref().clone();
-
-            Ok(regions
-                .get_ref()
-                .regions
-                .iter()
-                .map(|r| Region {
-                    width: r.width,
-                    height: r.height,
-                    x: r.x,
-                    y: r.y,
-                    id: r.id.clone(),
-                })
-                .collect())
-        }
-        Err(e) => {
-            println!("Error getting regions: {:?}", e);
-            Ok(vec![])
-        }
-    }
+    Ok(raw_regions)
 }
 
 // impl From<&crate::grpc::fence::Region> for Region {

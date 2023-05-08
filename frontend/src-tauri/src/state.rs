@@ -10,7 +10,7 @@ impl FenceState {
         Self(Mutex::new(State {
             current_hostname: None,
             current_client: None,
-            grpc_status: String::new(),
+            grpc_status: String::from("DISCONNECTED"),
         }))
     }
 }

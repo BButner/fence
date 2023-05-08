@@ -13,6 +13,7 @@ export default defineComponent({
 
     onMounted(async () => {
       state.value = await FenceApi.getState()
+      console.log(state.value)
       displays.value = await FenceApi.getDisplays()
       regions.value = await FenceApi.getRegions()
     })

@@ -46,5 +46,6 @@ export default defineComponent({
     <p>{{ regions?.length }}</p>
     <input type="text" v-model="hostname" />
     <button @click="connectGrpc(hostname)">Connect</button>
+    <EventHandler />
   </div>
 </template>

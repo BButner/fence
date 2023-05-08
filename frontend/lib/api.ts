@@ -9,6 +9,7 @@ import {
   COMMAND_GET_REGIONS,
   COMMAND_GET_STATE,
 } from "./commands"
+import { GrpcStatus } from "./types/grpc-status"
 
 export abstract class FenceApi {
   public static connectGrpc = async (hostname: string): Promise<void> => {
@@ -16,7 +17,10 @@ export abstract class FenceApi {
   }
 
   public static getState = async (): Promise<IFenceState> => {
-    return await invoke<IFenceState>(COMMAND_GET_STATE)
+    let state = await invoke<IFenceState>(COMMAND_GET_STATE)
+    console.log(state)
+    state.grpcStatus = GrpcStatus[state.grpcStatus as keyof typeof GrpcStatus]
+    return state
   }
 
   public static getDisplays = async (): Promise<IDisplay[]> => {

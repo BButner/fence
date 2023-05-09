@@ -43,7 +43,20 @@ export default defineComponent({
   <div
     class="w-full h-screen flex items-center justify-center relative overflow-hidden"
   >
-    <div class="z-10">
+    <div
+      v-motion
+      :initial="{
+        opacity: 0,
+        scale: 0.5,
+        y: 100,
+      }"
+      :enter="{
+        opacity: 1,
+        scale: 1,
+        y: 0,
+      }"
+      class="z-10"
+    >
       <h1
         class="bg-gradient-to-br from-tango-500 to-tango-600 bg-clip-text fill-transparent text-center text-8xl font-semibold tracking-wide text-transparent mb-16"
       >
@@ -84,10 +97,26 @@ export default defineComponent({
     <EventHandler />
 
     <div
-      className="absolute left-0 top-0 z-0 h-96 w-96 -translate-x-1/2 rotate-45 bg-mako-400/80 transition-all hover:bg-twilight-blue-500/50"
+      v-motion
+      :initial="{
+        transform: 'translateX(-100%) rotate(0deg)',
+      }"
+      :enter="{
+        transform: 'translateX(-50%) rotate(45deg)',
+      }"
+      className="absolute left-0 top-0 z-0 h-96 w-96 bg-mako-400/80 transition-colors hover:bg-twilight-blue-500/50"
     />
     <div
-      className="absolute bottom-0 right-0 z-0 h-96 w-96 translate-x-1/2 rotate-45 bg-mako-400/80 transition-all hover:bg-twilight-blue-500/50"
+      v-motion
+      :initial="{
+        transform: 'translateX(100%) rotate(0deg)',
+      }"
+      :enter="{
+        transform: 'translateX(60%) rotate(-45deg)',
+      }"
+      className="absolute bottom-0 right-0 z-0 h-96 w-96 animate-rotate-negative-45 bg-mako-400/80 transition-colors hover:bg-twilight-blue-500/50"
     />
   </div>
 </template>
+
+<style lang="scss"></style>

@@ -12,4 +12,5 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  modules: ["@vueuse/motion/nuxt"],
 })

@@ -38,14 +38,24 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
-    <h1>Home page</h1>
-    <p>{{ hostname }}</p>
-    <p>{{ state?.grpcStatus }}</p>
-    <p>{{ displays?.length }}</p>
-    <p>{{ regions?.length }}</p>
-    <input type="text" v-model="hostname" />
-    <button @click="connectGrpc(hostname)">Connect</button>
+  <div class="w-full h-screen flex items-center justify-center">
+    <div class="flex items-end space-x-4">
+      <div class="">
+        <label class="block font-semibold" for="connecting-hostname">Hostname</label>
+        <input
+          class="text-3xl px-2 h-14 shadow-lg"
+          type="text"
+          id="connecting-hostname"
+          v-model="hostname"
+        />
+      </div>
+      <button
+        @click="connectGrpc(hostname)"
+        class="bg-tango-500 px-8 h-14 text-xl font-semibold text-white-rock-50 shadow-lg"
+      >
+        Connect
+      </button>
+    </div>
     <EventHandler />
   </div>
 </template>

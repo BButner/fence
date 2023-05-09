@@ -1,0 +1,15 @@
+body, html {
+	@apply bg-white-rock-100;
+	@apply text-fiord-700;
+}
+
+input[type="text"] {
+	@apply bg-white-rock-100;
+	@apply bg-fiord-700  text-white-rock-50 font-semibold;
+	@apply outline-none focus:ring-4 focus:ring-fiord-500/50 transition-all;
+}
+
+button {
+	@apply bg-tango-500 font-semibold text-white-rock-50;
+	@apply outline-none focus:ring-4 focus:ring-tango-500/50 transition-all;
+}

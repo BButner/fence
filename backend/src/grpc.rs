@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use base64::{engine::general_purpose, Engine as _};
 use screenshots::Screen;
+use tempdir::TempDir;
+use tokio::fs;
 use tokio::sync::Mutex;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::Server;
@@ -13,6 +15,8 @@ use crate::cursor::{self, UpdateCursorLocationResult};
 use self::fence::fence_service_server::FenceService;
 
 use self::fence::{CursorLocation, DisplayScreenshot};
+
+extern crate oxipng;
 
 pub mod fence {
     tonic::include_proto!("fence");
@@ -187,19 +191,42 @@ impl FenceService for FenceManager {
     ) -> Result<tonic::Response<fence::DisplayScreenshotResponse>, tonic::Status> {
         let screens = Screen::all();
 
-        match screens {
+        let time_before = std::time::Instant::now();
+
+        let response = match screens {
             Ok(screens) => Ok(tonic::Response::new(fence::DisplayScreenshotResponse {
                 display_screenshots: screens
                     .iter()
                     .map(|screen| {
                         let image = screen.capture().unwrap();
-                        let data_encoded: String =
-                            general_purpose::STANDARD_NO_PAD.encode(image.buffer());
+                        let buffer = image.buffer();
 
-                        DisplayScreenshot {
-                            image_data: String::from(data_encoded),
-                            top: screen.display_info.y,
-                            left: screen.display_info.x,
+                        println!("Buffer size: {}", buffer.len());
+
+                        let optimized =
+                            oxipng::optimize_from_memory(&buffer, &oxipng::Options::default());
+
+                        match optimized {
+                            Ok(optimized) => {
+                                println!("Optimized size: {}", optimized.len());
+
+                                let data_encoded: String =
+                                    general_purpose::STANDARD_NO_PAD.encode(optimized);
+
+                                DisplayScreenshot {
+                                    image_data: String::from(data_encoded),
+                                    top: screen.display_info.y,
+                                    left: screen.display_info.x,
+                                }
+                            }
+                            Err(e) => {
+                                println!("Failed to optimize image: {:?}", e);
+                                DisplayScreenshot {
+                                    image_data: String::from(""),
+                                    top: screen.display_info.y,
+                                    left: screen.display_info.x,
+                                }
+                            }
                         }
                     })
                     .collect(),
@@ -207,7 +234,15 @@ impl FenceService for FenceManager {
             Err(_) => Ok(tonic::Response::new(fence::DisplayScreenshotResponse {
                 display_screenshots: vec![],
             })),
-        }
+        };
+
+        let time_after = std::time::Instant::now();
+        println!(
+            "Time in seconds: {}",
+            time_after.duration_since(time_before).as_secs()
+        );
+
+        response
     }
 
     async fn add_region(

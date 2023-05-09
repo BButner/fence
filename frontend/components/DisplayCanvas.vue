@@ -1,6 +1,9 @@
 <script lang="ts">
+import { listen, UnlistenFn } from "@tauri-apps/api/event"
 import { defineComponent } from "vue"
+import { ICursorPosition } from "~/lib/types/cursor"
 import { IDisplay } from "~/lib/types/displays"
+import { CURSOR_POSITION } from "~/lib/types/events"
 import { IRegion } from "~/lib/types/regions"
 
 export default defineComponent({
@@ -13,6 +16,9 @@ export default defineComponent({
     const topOffset = ref(0)
     const leftOffset = ref(0)
     const factor = ref(0.1)
+    const cursorX = ref(0)
+    const cursorY = ref(0)
+    const listener = ref<UnlistenFn | undefined>(undefined)
 
     const updateCanvas = () => {
       if (displays) {
@@ -41,6 +47,15 @@ export default defineComponent({
       }
     }
 
+    onMounted(async () => {
+      updateCanvas()
+
+      listener.value = await listen<ICursorPosition>(CURSOR_POSITION, (event) => {
+        cursorX.value = event.payload.x
+        cursorY.value = event.payload.y
+      })
+    })
+
     return {
       state,
       displays,
@@ -51,13 +66,18 @@ export default defineComponent({
       leftOffset,
       factor,
       updateCanvas,
+      listener,
+      cursorX,
+      cursorY,
     }
-  },
-  mounted() {
-    this.updateCanvas()
   },
   updated() {
     this.updateCanvas()
+  },
+  unmounted() {
+    if (this.listener) {
+      this.listener()
+    }
   },
 })
 </script>
@@ -92,6 +112,13 @@ export default defineComponent({
           left: region.x * factor + leftOffset * factor + 'px',
           width: region.width * factor + 'px',
           height: region.height * factor + 'px',
+        }"
+      ></div>
+      <div
+        class="w-2 h-2 rounded-full bg-white-rock-800 absolute"
+        :style="{
+          top: cursorY * factor + topOffset * factor + 'px',
+          left: cursorX * factor + leftOffset * factor + 'px',
         }"
       ></div>
     </div>

@@ -4,6 +4,8 @@ import { IFenceState } from "./lib/types/fence-state"
 import { FenceApi } from "./lib/api"
 import { IDisplay } from "./lib/types/displays"
 import { IRegion } from "./lib/types/regions"
+import { library } from "@fortawesome/fontawesome-svg-core"
+import { faPlug } from "@fortawesome/free-solid-svg-icons"
 
 export default defineComponent({
   setup() {
@@ -21,6 +23,8 @@ export default defineComponent({
     provide("state", state)
     provide("displays", displays)
     provide("regions", regions)
+
+    library.add(faPlug)
   },
 })
 </script>

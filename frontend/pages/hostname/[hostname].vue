@@ -18,7 +18,11 @@ export default defineComponent({
   <div
     class="w-screen h-screen overflow-hidden grid grid-flow-row grid-rows-[1fr_auto]"
   >
-    <div class="mx-auto"></div>
+    <div class="flex items-center justify-center">
+      <div class="flex space-x-4">
+        <DisplayCanvas />
+      </div>
+    </div>
     <ConnectionStatusBar />
   </div>
 </template>

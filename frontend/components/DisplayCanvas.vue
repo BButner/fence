@@ -1,8 +1,9 @@
 <script lang="ts">
 import { listen, UnlistenFn } from "@tauri-apps/api/event"
 import { defineComponent } from "vue"
+import { FenceApi } from "~/lib/api"
 import { ICursorPosition } from "~/lib/types/cursor"
-import { IDisplay } from "~/lib/types/displays"
+import { IDisplay, IDisplayScreenshot } from "~/lib/types/displays"
 import { CURSOR_POSITION } from "~/lib/types/events"
 import { IRegion } from "~/lib/types/regions"
 
@@ -19,6 +20,8 @@ export default defineComponent({
     const cursorX = ref(0)
     const cursorY = ref(0)
     const listener = ref<UnlistenFn | undefined>(undefined)
+    const showScreenshots = ref(false)
+    const screenshots = ref<IDisplayScreenshot[]>([])
 
     const updateCanvas = () => {
       if (displays) {
@@ -56,6 +59,12 @@ export default defineComponent({
       })
     })
 
+    const refreshScreenshots = () => {
+      FenceApi.getScreenshots().then((s) => {
+        screenshots.value = s
+      })
+    }
+
     return {
       state,
       displays,
@@ -69,6 +78,9 @@ export default defineComponent({
       listener,
       cursorX,
       cursorY,
+      showScreenshots,
+      screenshots,
+      refreshScreenshots,
     }
   },
   updated() {
@@ -79,11 +91,22 @@ export default defineComponent({
       this.listener()
     }
   },
+  watch: {
+    showScreenshots: {
+      handler() {
+        if (this.showScreenshots) {
+          this.refreshScreenshots()
+        } else {
+          this.screenshots = []
+        }
+      },
+    },
+  },
 })
 </script>
 
 <template>
-  <div class="">
+  <div class="space-y-4">
     <div
       class="relative"
       :style="{
@@ -102,7 +125,22 @@ export default defineComponent({
           width: display.width * factor + 'px',
           height: display.height * factor + 'px',
         }"
-      ></div>
+      >
+        <img
+          v-if="
+            showScreenshots &&
+            screenshots.filter((s) => s.left === display.left && s.top === display.top)
+              .length > 0
+          "
+          class="opacity-80"
+          :src="
+            'data:image/jpeg;base64,' +
+            screenshots.filter(
+              (s) => s.left === display.left && s.top === display.top,
+            )[0].imageData
+          "
+        />
+      </div>
       <div
         v-for="(region, index) in regions"
         :key="index"
@@ -121,6 +159,16 @@ export default defineComponent({
           left: cursorX * factor + leftOffset * factor - 4 + 'px',
         }"
       ></div>
+    </div>
+
+    <div class="flex justify-end items-center space-x-4">
+      <div class="flex items-center">
+        <input v-model="showScreenshots" id="show-screenshots" type="checkbox" />
+        <label for="show-screenshots" class="ml-2">Show Screenshots</label>
+      </div>
+      <button @click="refreshScreenshots" class="button-tango px-2 py-1">
+        Refresh Screenshots
+      </button>
     </div>
   </div>
 </template>

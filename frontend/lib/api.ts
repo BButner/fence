@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api"
 
-import { IDisplay } from "./types/displays"
+import { IDisplay, IDisplayScreenshot } from "./types/displays"
 import { IFenceState } from "./types/fence-state"
 import { IRegion } from "./types/regions"
 import {
@@ -8,6 +8,7 @@ import {
   COMMAND_GET_DISPLAYS,
   COMMAND_GET_REGIONS,
   COMMAND_GET_STATE,
+  COMMAND_GET_DISPLAY_SCREENSHOTS,
 } from "./commands"
 import { GrpcStatus } from "./types/grpc-status"
 
@@ -29,5 +30,9 @@ export abstract class FenceApi {
 
   public static getRegions = async (): Promise<IRegion[]> => {
     return await invoke<IRegion[]>(COMMAND_GET_REGIONS)
+  }
+
+  public static getScreenshots = async (): Promise<IDisplayScreenshot[]> => {
+    return await invoke<IDisplayScreenshot[]>(COMMAND_GET_DISPLAY_SCREENSHOTS)
   }
 }

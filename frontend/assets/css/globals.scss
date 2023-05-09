@@ -17,6 +17,11 @@ input[type="text"] {
 }
 
 button {
+	@apply text-white-rock-50 font-semibold;
+	@apply outline-none;
+}
+
+.button-tango {
 	@apply bg-tango-500 font-semibold text-white-rock-50;
 	@apply hover:bg-tango-600;
 	@apply active:bg-tango-700;

@@ -13,11 +13,13 @@ export default defineComponent({
     }
   },
   setup() {
+    const router = useRouter()
+
     const connectGrpc = (hostname: string) => {
       console.log("connecting to", hostname)
       FenceApi.connectGrpc(hostname)
         .then(() => {
-          console.log("connected")
+          router.push(`/hostname/${encodeURIComponent(hostname)}`)
         })
         .catch((err) => {
           console.log(err)
@@ -94,7 +96,6 @@ export default defineComponent({
         </button>
       </div>
     </div>
-    <EventHandler />
 
     <div
       v-motion

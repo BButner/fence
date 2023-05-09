@@ -12,12 +12,18 @@ export default defineComponent({
     let state = ref<IFenceState | undefined>(undefined)
     let displays = ref<IDisplay[]>([])
     let regions = ref<IRegion[]>([])
+    const router = useRouter()
 
     onMounted(async () => {
       state.value = await FenceApi.getState()
-      console.log(state.value)
       displays.value = await FenceApi.getDisplays()
       regions.value = await FenceApi.getRegions()
+
+      router.afterEach(async (to, from) => {
+        state.value = await FenceApi.getState()
+        displays.value = await FenceApi.getDisplays()
+        regions.value = await FenceApi.getRegions()
+      })
     })
 
     provide("state", state)
@@ -25,11 +31,16 @@ export default defineComponent({
     provide("regions", regions)
 
     library.add(faPlug)
+
+    return {
+      state,
+    }
   },
 })
 </script>
 
 <template>
+  <EventHandler />
   <Suspense>
     <NuxtLayout>
       <NuxtPage />

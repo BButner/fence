@@ -13,7 +13,7 @@ export default defineComponent({
       listener = await listen<IGrpcEventPayload>(GRPC_STATUS, (event) => {
         if (state) {
           state.value = {
-            ...state,
+            ...state.value,
             grpcStatus: GrpcStatus[event.payload.event as keyof typeof GrpcStatus],
           }
         }

@@ -117,8 +117,8 @@ export default defineComponent({
       <div
         class="w-2 h-2 rounded-full bg-white-rock-800 absolute"
         :style="{
-          top: cursorY * factor + topOffset * factor + 'px',
-          left: cursorX * factor + leftOffset * factor + 'px',
+          top: cursorY * factor + topOffset * factor - 4 + 'px',
+          left: cursorX * factor + leftOffset * factor - 4 + 'px',
         }"
       ></div>
     </div>

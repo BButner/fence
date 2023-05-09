@@ -59,6 +59,7 @@ export default defineComponent({
         />
         <font-awesome-icon
           v-if="
+            state &&
             [
               GrpcStatus.CONNECTION_LOST,
               GrpcStatus.DISCONNECTED,

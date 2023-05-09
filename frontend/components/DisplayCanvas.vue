@@ -83,6 +83,17 @@ export default defineComponent({
           height: display.height * factor + 'px',
         }"
       ></div>
+      <div
+        v-for="(region, index) in regions"
+        :key="index"
+        class="bg-rose-500/50 absolute"
+        :style="{
+          top: region.y * factor + topOffset * factor + 'px',
+          left: region.x * factor + leftOffset * factor + 'px',
+          width: region.width * factor + 'px',
+          height: region.height * factor + 'px',
+        }"
+      ></div>
     </div>
   </div>
 </template>

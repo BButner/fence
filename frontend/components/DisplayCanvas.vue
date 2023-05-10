@@ -132,7 +132,6 @@ export default defineComponent({
             screenshots.filter((s) => s.left === display.left && s.top === display.top)
               .length > 0
           "
-          class="opacity-80"
           :src="
             'data:image/jpeg;base64,' +
             screenshots.filter(

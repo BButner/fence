@@ -1,9 +1,10 @@
+use std::io::Cursor;
 use std::sync::Arc;
 
 use base64::{engine::general_purpose, Engine as _};
+use image::imageops::FilterType;
+use image::ImageFormat;
 use screenshots::Screen;
-use tempdir::TempDir;
-use tokio::fs;
 use tokio::sync::Mutex;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::Server;
@@ -15,8 +16,6 @@ use crate::cursor::{self, UpdateCursorLocationResult};
 use self::fence::fence_service_server::FenceService;
 
 use self::fence::{CursorLocation, DisplayScreenshot};
-
-extern crate oxipng;
 
 pub mod fence {
     tonic::include_proto!("fence");
@@ -200,18 +199,25 @@ impl FenceService for FenceManager {
                     .map(|screen| {
                         let image = screen.capture().unwrap();
                         let buffer = image.buffer();
-
                         println!("Buffer size: {}", buffer.len());
 
-                        let optimized =
-                            oxipng::optimize_from_memory(&buffer, &oxipng::Options::default());
+                        match image::load_from_memory_with_format(&buffer, ImageFormat::Png) {
+                            Ok(image) => {
+                                let new_image = image.resize(
+                                    ((image.width() as f32) * 0.1) as u32,
+                                    ((image.height() as f32) * 0.1) as u32,
+                                    FilterType::Nearest,
+                                );
 
-                        match optimized {
-                            Ok(optimized) => {
-                                println!("Optimized size: {}", optimized.len());
+                                let mut bytes: Vec<u8> = Vec::new();
+                                new_image
+                                    .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png)
+                                    .unwrap();
+
+                                println!("New buffer size: {}", bytes.len());
 
                                 let data_encoded: String =
-                                    general_purpose::STANDARD_NO_PAD.encode(optimized);
+                                    general_purpose::STANDARD_NO_PAD.encode(bytes);
 
                                 DisplayScreenshot {
                                     image_data: String::from(data_encoded),
@@ -220,7 +226,7 @@ impl FenceService for FenceManager {
                                 }
                             }
                             Err(e) => {
-                                println!("Failed to optimize image: {:?}", e);
+                                println!("Failed to load image: {:?}", e);
                                 DisplayScreenshot {
                                     image_data: String::from(""),
                                     top: screen.display_info.y,

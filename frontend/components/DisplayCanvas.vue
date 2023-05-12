@@ -61,6 +61,7 @@ export default defineComponent({
 
     const refreshScreenshots = () => {
       FenceApi.getScreenshots().then((s) => {
+        console.log(screenshots)
         screenshots.value = s
       })
     }
@@ -133,7 +134,7 @@ export default defineComponent({
               .length > 0
           "
           :src="
-            'data:image/jpeg;base64,' +
+            'data:image/png;base64,' +
             screenshots.filter(
               (s) => s.left === display.left && s.top === display.top,
             )[0].imageData
